@@ -16,12 +16,19 @@ from app.commands.command_manager import command_manager
 class WelcomeApp(App):
     """Main application class."""
     
+    BINDINGS = [
+        ("ctrl+c", "cleanup_and_quit", "Clean DB & Quit"),
+        ("ctrl+l", "clear_terminal", "Clear Terminal"),
+    ]
+    
     def __init__(self):
         super().__init__()
         self._setup_step = None
         self._models = []
         self._current_command = None
         self._init_waiting_for_path = False
+        self._clean_waiting_for_action = False
+        self._pending_clean_action = None
 
     def compose(self) -> ComposeResult:
         """Compose the main app layout."""
@@ -64,7 +71,10 @@ class WelcomeApp(App):
                 commands_text.append(" - Generate commit message (coming soon)\n", style="white")
                 commands_text.append("• ", style="dim")
                 commands_text.append("/clean", style="bold cyan")
-                commands_text.append(" - Clean database (coming soon)\n", style="white")
+                commands_text.append(" - Database maintenance (clean/stats/vacuum)\n", style="white")
+                commands_text.append("• ", style="dim")
+                commands_text.append("/clear", style="bold cyan")
+                commands_text.append(" - Clear terminal output\n", style="white")
 
                 yield Static(Panel(
                     commands_text,
@@ -78,7 +88,8 @@ class WelcomeApp(App):
                     auto_scroll=True, 
                     max_lines=100,
                     highlight=True,
-                    markup=True
+                    markup=True,
+                    wrap=True
                 )
                 
                 # Progress bar (initially hidden)
@@ -92,12 +103,36 @@ class WelcomeApp(App):
     def on_mount(self) -> None:
         """Focus the input when app mounts."""
         output = self.query_one("#output")
-        output.write("Ready! Type [bold]/setup[/bold] to configure your model.")
+        output.write("Ready! Available commands: [bold]/setup[/bold], [bold]/models[/bold], [bold]/init[/bold], [bold]/clean[/bold], [bold]/clear[/bold]")
+        output.write("[dim]💡 Tip: Use Ctrl+L to clear terminal, Ctrl+C to clean database and quit[/dim]")
+        output.write("[dim]🖱️  You can select and copy text with your mouse![/dim]")
         self.query_one("#input").focus()
         
         # Hide progress bar initially
         progress = self.query_one("#progress")
         progress.display = False
+
+    async def action_cleanup_and_quit(self) -> None:
+        """Clean database and quit application."""
+        output = self.query_one("#output")
+        output.write("[blue]🧹 Cleaning database before exit...[/blue]")
+        
+        try:
+            from app.functions.database_operations import clean_database
+            result = clean_database()
+            output.write(f"[green]{result}[/green]")
+            await asyncio.sleep(1)  # Brief pause to show message
+        except Exception as e:
+            output.write(f"[red]❌ Error cleaning database: {e}[/red]")
+            await asyncio.sleep(1)
+        
+        self.exit()
+
+    async def action_clear_terminal(self) -> None:
+        """Clear the terminal output."""
+        output = self.query_one("#output")
+        output.clear()
+        output.write("🧹 Terminal cleared! Type [bold]/setup[/bold], [bold]/models[/bold], [bold]/init[/bold], or [bold]/clean[/bold].")
 
     async def on_input_submitted(self, event: Input.Submitted) -> None:
         """Handle input submission."""
@@ -118,6 +153,11 @@ class WelcomeApp(App):
         if self._init_waiting_for_path:
             await self._handle_init_path(output, text)
             return
+            
+        # If we're waiting for clean action
+        if self._clean_waiting_for_action:
+            await self._handle_clean_action(output, text)
+            return
 
         # Handle commands
         if text == "/setup":
@@ -126,8 +166,12 @@ class WelcomeApp(App):
             await self._handle_models(output)
         elif text == "/init":
             await self._handle_init(output)
+        elif text == "/clean":
+            await self._handle_clean(output)
+        elif text == "/clear":
+            await self.action_clear_terminal()
         elif text:
-            output.write("[red]Unknown command. Use /setup, /models, or /init[/red]")
+            output.write("[red]Unknown command. Use /setup, /models, /init, /clean, or /clear[/red]")
 
     async def _handle_setup(self, output: RichLog) -> None:
         """Handle setup command step by step."""
@@ -217,6 +261,100 @@ class WelcomeApp(App):
         except Exception as e:
             output.write(f"[red]Error: {e}[/red]")
 
+    async def _handle_clean(self, output: RichLog) -> None:
+        """Handle clean command step by step."""
+        try:
+            output.write("[blue]🧹 Database maintenance options...[/blue]")
+
+            # Call clean command to get options
+            result = await command_manager.execute_command("clean")
+
+            if result.get("prompt") == "action":
+                # Show available actions
+                output.write(f"\n[green]{result['message']}[/green]")
+                actions = result.get("actions", [])
+
+                for i, action in enumerate(actions, 1):
+                    output.write(f"  {i}. [bold]{action['key']}[/bold] - {action['desc']}")
+
+                # Set state to wait for action selection
+                output.write("[yellow]Enter action number or name (clean/stats/vacuum):[/yellow]")
+                self._clean_waiting_for_action = True
+                input_widget = self.query_one("#input")
+                input_widget.placeholder = "Enter action (1-3 or clean/stats/vacuum)"
+
+            elif result.get("success"):
+                output.write(f"[green]{result['message']}[/green]")
+            else:
+                output.write(f"[red]{result['message']}[/red]")
+
+        except Exception as e:
+            output.write(f"[red]Error: {e}[/red]")
+
+    async def _handle_clean_action(self, output: RichLog, choice: str) -> None:
+        """Handle clean action selection."""
+        try:
+            # Allow empty input to cancel
+            if not choice.strip():
+                output.write("[dim]Clean operation cancelled.[/dim]")
+                self._clean_waiting_for_action = False
+                input_widget = self.query_one("#input")
+                input_widget.placeholder = "Type /setup, /models, /init, /clean, or /clear"
+                return
+
+            # Map numbers to actions
+            action_map = {"1": "clean", "2": "stats", "3": "vacuum"}
+            action = action_map.get(choice, choice.lower())
+
+            # Handle pending clean confirmation
+            if hasattr(self, '_pending_clean_action') and self._pending_clean_action:
+                if choice.lower() == "yes":
+                    output.write("[blue]🧹 Cleaning database...[/blue]")
+                    result = await command_manager.execute_command("clean", action=self._pending_clean_action)
+                    if result.get("success"):
+                        output.write(f"[green]{result['message']}[/green]")
+                    else:
+                        output.write(f"[red]{result['message']}[/red]")
+                else:
+                    output.write("[dim]Database clean cancelled.[/dim]")
+                
+                self._pending_clean_action = None
+                self._clean_waiting_for_action = False
+                input_widget = self.query_one("#input")
+                input_widget.placeholder = "Type /setup, /models, /init, /clean, or /clear"
+                return
+
+            # Special warning for clean action
+            if action == "clean":
+                output.write("[red]⚠️  WARNING: This will permanently delete ALL data![/red]")
+                output.write("[dim]Including: user settings, API keys, conversation history[/dim]")
+                output.write("[yellow]Type 'yes' to confirm or anything else to cancel:[/yellow]")
+                
+                # Wait for confirmation
+                self._pending_clean_action = action
+                input_widget = self.query_one("#input")
+                input_widget.placeholder = "Type 'yes' to confirm deletion"
+                return
+
+            # Execute non-destructive actions immediately
+            result = await command_manager.execute_command("clean", action=action)
+
+            if result.get("success"):
+                output.write(f"[green]{result['message']}[/green]")
+            else:
+                output.write(f"[red]{result['message']}[/red]")
+
+            # Reset state
+            self._clean_waiting_for_action = False
+            input_widget = self.query_one("#input")
+            input_widget.placeholder = "Type /setup, /models, /init, /clean, or /clear"
+
+        except Exception as e:
+            output.write(f"[red]Error during clean operation: {e}[/red]")
+            self._clean_waiting_for_action = False
+            input_widget = self.query_one("#input")
+            input_widget.placeholder = "Type /setup, /models, /init, /clean, or /clear"
+
     def _show_progress(self, message: str = "Processing..."):
         """Show progress bar with message."""
         progress = self.query_one("#progress")
@@ -232,7 +370,7 @@ class WelcomeApp(App):
         progress = self.query_one("#progress")
         progress.display = False
 
-    async def _animate_progress(self, output: RichLog, message: str, duration: float = 60.0):
+    async def _animate_progress(self, output: RichLog, _message: str, duration: float = 60.0):
         """Animate progress bar and show loading messages."""
         # Loading messages to cycle through
         loading_messages = [
@@ -377,8 +515,10 @@ class WelcomeApp(App):
         self._models = []
         self._current_command = None
         self._init_waiting_for_path = False
+        self._clean_waiting_for_action = False
+        self._pending_clean_action = None
         input_widget = self.query_one("#input")
-        input_widget.placeholder = "Type /setup, /models, or /init and press Enter"
+        input_widget.placeholder = "Type /setup, /models, /init, /clean, or /clear"
 
 
 if __name__ == "__main__":

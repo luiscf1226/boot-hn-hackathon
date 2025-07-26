@@ -10,6 +10,7 @@ from app.commands.command_enum import AgentCommand
 from app.commands.setup_command import SetupCommand
 from app.commands.models_command import ModelsCommand
 from app.commands.init_command import InitCommand
+from app.commands.clean_command import CleanCommand
 from app.core.database import get_db, create_tables
 
 
@@ -31,6 +32,9 @@ class CommandManager:
         
         # Register init command
         self._commands[AgentCommand.INIT] = InitCommand
+        
+        # Register clean command
+        self._commands[AgentCommand.CLEAN] = CleanCommand
 
         # TODO: Register other commands as they are implemented
         # etc.
