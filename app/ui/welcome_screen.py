@@ -33,6 +33,8 @@ class WelcomeApp(App):
         self._pending_commit_message = None
         self._review_waiting_for_confirmation = False
         self._pending_review_data = None
+        self._explain_waiting_for_input = False
+        self._explain_input_type = None
 
     def compose(self) -> ComposeResult:
         """Compose the main app layout."""
@@ -69,7 +71,7 @@ class WelcomeApp(App):
                 commands_text.append(" - Review git changes (coming soon)\n", style="white")
                 commands_text.append("• ", style="dim")
                 commands_text.append("/explain", style="bold cyan")
-                commands_text.append(" - Explain code (coming soon)\n", style="white")
+                commands_text.append(" - Explain code from files or paste\n", style="white")
                 commands_text.append("• ", style="dim")
                 commands_text.append("/commit", style="bold cyan")
                 commands_text.append(" - AI-generated git commit messages\n", style="white")
@@ -107,7 +109,7 @@ class WelcomeApp(App):
     def on_mount(self) -> None:
         """Focus the input when app mounts."""
         output = self.query_one("#output")
-        output.write("Ready! Available commands: [bold]/setup[/bold], [bold]/models[/bold], [bold]/init[/bold], [bold]/clean[/bold], [bold]/commit[/bold], [bold]/clear[/bold]")
+        output.write("Ready! Available commands: [bold]/setup[/bold], [bold]/models[/bold], [bold]/init[/bold], [bold]/clean[/bold], [bold]/commit[/bold], [bold]/explain[/bold], [bold]/clear[/bold]")
         output.write("[dim]💡 Tip: Use Ctrl+L to clear terminal, Ctrl+C to clean database and quit[/dim]")
         output.write("[dim]🖱️  You can select and copy text with your mouse![/dim]")
         self.query_one("#input").focus()
@@ -136,7 +138,7 @@ class WelcomeApp(App):
         """Clear the terminal output."""
         output = self.query_one("#output")
         output.clear()
-        output.write("🧹 Terminal cleared! Type [bold]/setup[/bold], [bold]/models[/bold], [bold]/init[/bold], [bold]/clean[/bold], [bold]/commit[/bold], [bold]/review-changes[/bold], or [bold]/clear[/bold].")
+        output.write("🧹 Terminal cleared! Type [bold]/setup[/bold], [bold]/models[/bold], [bold]/init[/bold], [bold]/clean[/bold], [bold]/commit[/bold], [bold]/review-changes[/bold], [bold]/explain[/bold], or [bold]/clear[/bold].")
 
     async def on_input_submitted(self, event: Input.Submitted) -> None:
         """Handle input submission."""
@@ -172,6 +174,11 @@ class WelcomeApp(App):
         if self._review_waiting_for_confirmation:
             await self._handle_review_confirmation(output, text)
             return
+            
+        # If we're waiting for explain input
+        if self._explain_waiting_for_input:
+            await self._handle_explain_input(output, text)
+            return
 
         # Handle commands
         if text == "/setup":
@@ -186,10 +193,12 @@ class WelcomeApp(App):
             await self._handle_commit(output)
         elif text == "/review-changes":
             await self._handle_review(output)
+        elif text == "/explain":
+            await self._handle_explain(output)
         elif text == "/clear":
             await self.action_clear_terminal()
         elif text:
-            output.write("[red]Unknown command. Use /setup, /models, /init, /clean, /commit, /review-changes, or /clear[/red]")
+            output.write("[red]Unknown command. Use /setup, /models, /init, /clean, /commit, /review-changes, /explain, or /clear[/red]")
 
     async def _handle_setup(self, output: RichLog) -> None:
         """Handle setup command step by step."""
@@ -608,7 +617,263 @@ class WelcomeApp(App):
             self._review_waiting_for_confirmation = False
             self._pending_review_data = None
             input_widget = self.query_one("#input")
-            input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, /review-changes, or /clear"
+            input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, /review-changes, /explain, or /clear"
+
+    async def _handle_explain(self, output: RichLog) -> None:
+        """Handle explain command."""
+        try:
+            output.write("[blue]🤖 Starting AI Code Explanation...[/blue]")
+            
+            # Get explanation options
+            result = await command_manager.execute_command("explain")
+            
+            if result.get("prompt") == "explain_input":
+                # Show available options
+                output.write(f"\n[green]{result['message']}[/green]")
+                options = result.get("data", {}).get("options", [])
+                
+                for i, option in enumerate(options, 1):
+                    output.write(f"  {i}. [bold]{option['key']}[/bold] - {option['desc']}")
+                
+                # Set state to wait for option selection
+                output.write("\n[yellow]Choose an option (1-3) or type your choice:[/yellow]")
+                output.write("[dim]• paste - Paste code to analyze[/dim]")
+                output.write("[dim]• file <path> - Analyze specific file[/dim]")
+                output.write("[dim]• current - Analyze current directory[/dim]")
+                
+                self._explain_waiting_for_input = True
+                self._explain_input_type = "option"
+                input_widget = self.query_one("#input")
+                input_widget.placeholder = "Enter 1-3, paste, file <path>, or current"
+                
+            elif result.get("success"):
+                output.write(f"[green]{result['message']}[/green]")
+            else:
+                output.write(f"[red]{result['message']}[/red]")
+                
+        except Exception as e:
+            output.write(f"[red]❌ Error starting explain: {e}[/red]")
+
+    async def _handle_explain_input(self, output: RichLog, text: str) -> None:
+        """Handle explain input."""
+        try:
+            # Allow empty input to cancel
+            if not text.strip():
+                output.write("[dim]Explain operation cancelled.[/dim]")
+                self._explain_waiting_for_input = False
+                self._explain_input_type = None
+                input_widget = self.query_one("#input")
+                input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, /review-changes, /explain, or /clear"
+                return
+
+            text = text.strip()
+            
+            if self._explain_input_type == "option":
+                # Handle option selection
+                if text in ["1", "paste"]:
+                    output.write("[blue]📝 Paste your code below and press Enter:[/blue]")
+                    output.write("[dim]Tip: You can paste multi-line code. Press Enter when done.[/dim]")
+                    self._explain_input_type = "code_paste"
+                    input_widget = self.query_one("#input")
+                    input_widget.placeholder = "Paste your code here..."
+                    
+                elif text in ["2", "file"] or text.startswith("file "):
+                    if text.startswith("file "):
+                        file_path = text[5:].strip()
+                        await self._execute_explain_file(output, file_path)
+                    else:
+                        output.write("[blue]📁 Enter the file path to analyze:[/blue]")
+                        output.write("[dim]Example: ./main.py or /path/to/file.py[/dim]")
+                        self._explain_input_type = "file_path"
+                        input_widget = self.query_one("#input")
+                        input_widget.placeholder = "Enter file path..."
+                        
+                elif text in ["3", "current"]:
+                    await self._execute_explain_current(output)
+                    
+                else:
+                    output.write("[red]Invalid option. Please enter 1-3, paste, file, or current[/red]")
+                    
+            elif self._explain_input_type == "code_paste":
+                # Handle pasted code
+                await self._execute_explain_code(output, text)
+                
+            elif self._explain_input_type == "file_path":
+                # Handle file path
+                await self._execute_explain_file(output, text)
+                
+        except Exception as e:
+            output.write(f"[red]❌ Error processing explain input: {e}[/red]")
+            self._explain_waiting_for_input = False
+            self._explain_input_type = None
+            input_widget = self.query_one("#input")
+            input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, /review-changes, /explain, or /clear"
+
+    async def _execute_explain_code(self, output: RichLog, code: str) -> None:
+        """Execute code explanation."""
+        try:
+            output.write("[blue]🤖 Analyzing your code...[/blue]")
+            output.write("[yellow]⏳ Don't worry, it's not broken! We're calling the AI - this can take 30-60 seconds...[/yellow]")
+            
+            # Show progress bar
+            self._show_progress("🤖 AI Code Analyzer")
+            await asyncio.sleep(0.1)
+            
+            # Show progress animation
+            progress_task = asyncio.create_task(
+                self._animate_progress(output, "Code Analysis", 45.0)
+            )
+            
+            # Execute command
+            command_task = asyncio.create_task(
+                command_manager.execute_command("explain", action="analyze_code", code=code)
+            )
+            
+            try:
+                result = await command_task
+                progress_task.cancel()
+                
+                # Complete progress bar
+                progress = self.query_one("#progress")
+                progress.update(progress=100)
+                await asyncio.sleep(0.5)
+                
+            except Exception as e:
+                progress_task.cancel()
+                raise e
+            finally:
+                self._hide_progress()
+            
+            if result.get("success"):
+                explanation = result.get("explanation_content", "")
+                output.write(f"\n[green]{result['message']}[/green]")
+                output.write(f"\n{explanation}")
+                output.write(f"\n[dim]AI Model: {result.get('ai_model', 'Unknown')} | Session: {result.get('session_id', 'Unknown')}[/dim]")
+            else:
+                error_msg = result.get("message", "Unknown error")
+                output.write(f"[red]❌ Code analysis failed: {error_msg}[/red]")
+                if "API key" in error_msg:
+                    output.write("[dim]💡 Tip: Run /setup to configure your AI model[/dim]")
+                    
+        except Exception as e:
+            output.write(f"[red]❌ Error analyzing code: {e}[/red]")
+        finally:
+            self._explain_waiting_for_input = False
+            self._explain_input_type = None
+            input_widget = self.query_one("#input")
+            input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, /review-changes, /explain, or /clear"
+
+    async def _execute_explain_file(self, output: RichLog, file_path: str) -> None:
+        """Execute file explanation."""
+        try:
+            output.write(f"[blue]🤖 Analyzing file: {file_path}[/blue]")
+            output.write("[yellow]⏳ Don't worry, it's not broken! We're calling the AI - this can take 30-60 seconds...[/yellow]")
+            
+            # Show progress bar
+            self._show_progress("🤖 AI File Analyzer")
+            await asyncio.sleep(0.1)
+            
+            # Show progress animation
+            progress_task = asyncio.create_task(
+                self._animate_progress(output, "File Analysis", 45.0)
+            )
+            
+            # Execute command
+            command_task = asyncio.create_task(
+                command_manager.execute_command("explain", action="analyze_file", file_path=file_path)
+            )
+            
+            try:
+                result = await command_task
+                progress_task.cancel()
+                
+                # Complete progress bar
+                progress = self.query_one("#progress")
+                progress.update(progress=100)
+                await asyncio.sleep(0.5)
+                
+            except Exception as e:
+                progress_task.cancel()
+                raise e
+            finally:
+                self._hide_progress()
+            
+            if result.get("success"):
+                explanation = result.get("explanation_content", "")
+                file_name = result.get("file_name", file_path)
+                output.write(f"\n[green]{result['message']}[/green]")
+                output.write(f"\n{explanation}")
+                output.write(f"\n[dim]File: {file_name} | Size: {result.get('file_size', 0)} chars | AI Model: {result.get('ai_model', 'Unknown')}[/dim]")
+            else:
+                error_msg = result.get("message", "Unknown error")
+                output.write(f"[red]❌ File analysis failed: {error_msg}[/red]")
+                if "API key" in error_msg:
+                    output.write("[dim]💡 Tip: Run /setup to configure your AI model[/dim]")
+                elif "not found" in error_msg.lower():
+                    output.write("[dim]💡 Tip: Use absolute or relative paths like ./file.py or /full/path/file.py[/dim]")
+                    
+        except Exception as e:
+            output.write(f"[red]❌ Error analyzing file: {e}[/red]")
+        finally:
+            self._explain_waiting_for_input = False
+            self._explain_input_type = None
+            input_widget = self.query_one("#input")
+            input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, /review-changes, /explain, or /clear"
+
+    async def _execute_explain_current(self, output: RichLog) -> None:
+        """Execute current directory explanation."""
+        try:
+            output.write("[blue]🤖 Analyzing current directory structure...[/blue]")
+            output.write("[yellow]⏳ Don't worry, it's not broken! We're calling the AI - this can take 30-60 seconds...[/yellow]")
+            
+            # Show progress bar
+            self._show_progress("🤖 AI Directory Analyzer")
+            await asyncio.sleep(0.1)
+            
+            # Show progress animation
+            progress_task = asyncio.create_task(
+                self._animate_progress(output, "Directory Analysis", 45.0)
+            )
+            
+            # Execute command
+            command_task = asyncio.create_task(
+                command_manager.execute_command("explain", action="analyze_current_dir")
+            )
+            
+            try:
+                result = await command_task
+                progress_task.cancel()
+                
+                # Complete progress bar
+                progress = self.query_one("#progress")
+                progress.update(progress=100)
+                await asyncio.sleep(0.5)
+                
+            except Exception as e:
+                progress_task.cancel()
+                raise e
+            finally:
+                self._hide_progress()
+            
+            if result.get("success"):
+                explanation = result.get("explanation_content", "")
+                directory_path = result.get("directory_path", "")
+                output.write(f"\n[green]{result['message']}[/green]")
+                output.write(f"\n{explanation}")
+                output.write(f"\n[dim]Directory: {directory_path} | AI Model: {result.get('ai_model', 'Unknown')}[/dim]")
+            else:
+                error_msg = result.get("message", "Unknown error")
+                output.write(f"[red]❌ Directory analysis failed: {error_msg}[/red]")
+                if "API key" in error_msg:
+                    output.write("[dim]💡 Tip: Run /setup to configure your AI model[/dim]")
+                    
+        except Exception as e:
+            output.write(f"[red]❌ Error analyzing directory: {e}[/red]")
+        finally:
+            self._explain_waiting_for_input = False
+            self._explain_input_type = None
+            input_widget = self.query_one("#input")
+            input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, /review-changes, /explain, or /clear"
 
     def _show_progress(self, message: str = "Processing..."):
         """Show progress bar with message."""
@@ -650,6 +915,42 @@ class WelcomeApp(App):
                 "💡 Generating improvement suggestions...",
                 "🧪 Evaluating test coverage needs...",
                 "📝 Preparing comprehensive review..."
+            ]
+        elif "Code Analysis" in message:
+            loading_messages = [
+                "🔍 Parsing code structure...",
+                "📊 Analyzing syntax and patterns...",
+                "🏗️  Identifying functions and classes...",
+                "💡 Understanding code logic...",
+                "🤖 AI expert analyzing implementation...",
+                "📝 Breaking down algorithms...",
+                "🎯 Identifying learning opportunities...",
+                "⚠️  Checking for best practices...",
+                "📚 Preparing educational explanation..."
+            ]
+        elif "File Analysis" in message:
+            loading_messages = [
+                "📁 Reading file contents...",
+                "🔍 Analyzing file structure...",
+                "📊 Identifying programming language...",
+                "🏗️  Understanding architecture...",
+                "🤖 AI expert reviewing code...",
+                "💡 Extracting key concepts...",
+                "🎯 Finding learning insights...",
+                "📝 Analyzing code quality...",
+                "📚 Preparing comprehensive explanation..."
+            ]
+        elif "Directory Analysis" in message:
+            loading_messages = [
+                "📁 Scanning directory structure...",
+                "🔍 Identifying project files...",
+                "📊 Analyzing project architecture...",
+                "🏗️  Understanding file organization...",
+                "🤖 AI architect reviewing structure...",
+                "💡 Identifying technology stack...",
+                "🎯 Finding architectural patterns...",
+                "📝 Analyzing project conventions...",
+                "📚 Preparing project insights..."
             ]
         else:
             # Default messages for init/documentation

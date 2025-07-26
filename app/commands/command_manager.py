@@ -13,6 +13,7 @@ from app.commands.init_command import InitCommand
 from app.commands.clean_command import CleanCommand
 from app.commands.commit_command import CommitCommand
 from app.commands.review_command import ReviewCommand
+from app.commands.explain_command import ExplainCommand
 from app.core.database import get_db, create_tables
 
 
@@ -43,6 +44,9 @@ class CommandManager:
         
         # Register review command
         self._commands[AgentCommand.REVIEW_CHANGES] = ReviewCommand
+        
+        # Register explain command
+        self._commands[AgentCommand.EXPLAIN] = ExplainCommand
 
         # TODO: Register other commands as they are implemented
         # etc.
