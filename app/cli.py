@@ -20,8 +20,7 @@ def main():
             sys.path.insert(0, str(current_dir))
 
         # Import and run the main application
-        from main import main as run_app
-
+        from app.main import main as run_app
         run_app()
 
     except KeyboardInterrupt:
