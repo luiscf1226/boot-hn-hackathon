@@ -13,15 +13,16 @@ def main():
     """Main entry point for the AI Coding Agent console script."""
     try:
         print("🚀 Starting AI Coding Agent...")
+        print("Loading environment...")
+        print("Setting up paths...")
+        print("Importing UI...")
+        
+        # Import and run the application directly
+        from app.ui.welcome_screen import WelcomeApp
 
-        # Add the package root to Python path if not already there
-        current_dir = Path(__file__).parent.parent.absolute()
-        if str(current_dir) not in sys.path:
-            sys.path.insert(0, str(current_dir))
-
-        # Import and run the main application
-        from app.main import main as run_app
-        run_app()
+        print("Starting UI...")
+        app = WelcomeApp()
+        app.run()
 
     except KeyboardInterrupt:
         print("\n👋 Goodbye! See you next time!")
