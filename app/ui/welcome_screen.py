@@ -29,6 +29,8 @@ class WelcomeApp(App):
         self._init_waiting_for_path = False
         self._clean_waiting_for_action = False
         self._pending_clean_action = None
+        self._commit_waiting_for_confirmation = False
+        self._pending_commit_message = None
 
     def compose(self) -> ComposeResult:
         """Compose the main app layout."""
@@ -68,7 +70,7 @@ class WelcomeApp(App):
                 commands_text.append(" - Explain code (coming soon)\n", style="white")
                 commands_text.append("• ", style="dim")
                 commands_text.append("/commit", style="bold cyan")
-                commands_text.append(" - Generate commit message (coming soon)\n", style="white")
+                commands_text.append(" - AI-generated git commit messages\n", style="white")
                 commands_text.append("• ", style="dim")
                 commands_text.append("/clean", style="bold cyan")
                 commands_text.append(" - Database maintenance (clean/stats/vacuum)\n", style="white")
@@ -103,7 +105,7 @@ class WelcomeApp(App):
     def on_mount(self) -> None:
         """Focus the input when app mounts."""
         output = self.query_one("#output")
-        output.write("Ready! Available commands: [bold]/setup[/bold], [bold]/models[/bold], [bold]/init[/bold], [bold]/clean[/bold], [bold]/clear[/bold]")
+        output.write("Ready! Available commands: [bold]/setup[/bold], [bold]/models[/bold], [bold]/init[/bold], [bold]/clean[/bold], [bold]/commit[/bold], [bold]/clear[/bold]")
         output.write("[dim]💡 Tip: Use Ctrl+L to clear terminal, Ctrl+C to clean database and quit[/dim]")
         output.write("[dim]🖱️  You can select and copy text with your mouse![/dim]")
         self.query_one("#input").focus()
@@ -132,7 +134,7 @@ class WelcomeApp(App):
         """Clear the terminal output."""
         output = self.query_one("#output")
         output.clear()
-        output.write("🧹 Terminal cleared! Type [bold]/setup[/bold], [bold]/models[/bold], [bold]/init[/bold], or [bold]/clean[/bold].")
+        output.write("🧹 Terminal cleared! Type [bold]/setup[/bold], [bold]/models[/bold], [bold]/init[/bold], [bold]/clean[/bold], [bold]/commit[/bold], or [bold]/clear[/bold].")
 
     async def on_input_submitted(self, event: Input.Submitted) -> None:
         """Handle input submission."""
@@ -158,6 +160,11 @@ class WelcomeApp(App):
         if self._clean_waiting_for_action:
             await self._handle_clean_action(output, text)
             return
+            
+        # If we're waiting for commit confirmation
+        if self._commit_waiting_for_confirmation:
+            await self._handle_commit_confirmation(output, text)
+            return
 
         # Handle commands
         if text == "/setup":
@@ -168,10 +175,12 @@ class WelcomeApp(App):
             await self._handle_init(output)
         elif text == "/clean":
             await self._handle_clean(output)
+        elif text == "/commit":
+            await self._handle_commit(output)
         elif text == "/clear":
             await self.action_clear_terminal()
         elif text:
-            output.write("[red]Unknown command. Use /setup, /models, /init, /clean, or /clear[/red]")
+            output.write("[red]Unknown command. Use /setup, /models, /init, /clean, /commit, or /clear[/red]")
 
     async def _handle_setup(self, output: RichLog) -> None:
         """Handle setup command step by step."""
@@ -353,7 +362,135 @@ class WelcomeApp(App):
             output.write(f"[red]Error during clean operation: {e}[/red]")
             self._clean_waiting_for_action = False
             input_widget = self.query_one("#input")
-            input_widget.placeholder = "Type /setup, /models, /init, /clean, or /clear"
+            input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, or /clear"
+
+    async def _handle_commit(self, output: RichLog) -> None:
+        """Handle commit command step by step."""
+        try:
+            output.write("[blue]📝 Analyzing git repository and generating commit message...[/blue]")
+            
+            # Show progress animation for AI processing
+            progress_task = asyncio.create_task(
+                self._animate_progress(output, "🤖 AI Commit Message Generator", 45.0)
+            )
+            
+            # Execute commit command
+            command_task = asyncio.create_task(
+                command_manager.execute_command("commit")
+            )
+            
+            # Wait for command to complete
+            try:
+                result = await command_task
+                progress_task.cancel()
+                
+                # Complete progress bar
+                progress = self.query_one("#progress")
+                progress.update(progress=100)
+                await asyncio.sleep(0.5)
+                
+            except Exception as e:
+                progress_task.cancel()
+                raise e
+            finally:
+                self._hide_progress()
+
+            if result.get("prompt") == "commit_confirm":
+                # Show staged files
+                output.write(f"\n{result.get('staged_files', '')}")
+                
+                # Show AI-generated commit message
+                commit_message = result.get("commit_message", "")
+                output.write(f"\n[green]{result['message']}[/green]")
+                output.write(f'[yellow]"{commit_message}"[/yellow]')
+                
+                # Show AI info
+                output.write(f"[dim]Generated by: {result.get('ai_model', 'Unknown')} (Session: {result.get('session_id', 'Unknown')})[/dim]")
+                
+                # Ask for confirmation
+                output.write("\n[yellow]Execute this commit? (yes/no/edit):[/yellow]")
+                output.write("[dim]• yes - Execute the commit[/dim]")
+                output.write("[dim]• no - Cancel the commit[/dim]")
+                output.write("[dim]• edit - Modify the message[/dim]")
+                
+                self._commit_waiting_for_confirmation = True
+                self._pending_commit_message = commit_message
+                input_widget = self.query_one("#input")
+                input_widget.placeholder = "yes/no/edit"
+
+            elif result.get("success"):
+                output.write(f"[green]{result['message']}[/green]")
+            else:
+                output.write(f"[red]{result['message']}[/red]")
+
+        except Exception as e:
+            # Ensure progress bar is hidden on error
+            self._hide_progress()
+            output.write(f"[red]❌ Error during commit: {e}[/red]")
+
+    async def _handle_commit_confirmation(self, output: RichLog, choice: str) -> None:
+        """Handle commit confirmation choice."""
+        try:
+            choice = choice.lower().strip()
+            
+            # Allow empty input to cancel
+            if not choice or choice == "no":
+                output.write("[dim]Commit cancelled.[/dim]")
+                self._commit_waiting_for_confirmation = False
+                self._pending_commit_message = None
+                input_widget = self.query_one("#input")
+                input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, or /clear"
+                return
+
+            if choice == "yes":
+                # Execute the commit
+                output.write("[blue]🚀 Executing commit...[/blue]")
+                result = await command_manager.execute_command("commit", action="execute", commit_message=self._pending_commit_message)
+
+                if result.get("success"):
+                    output.write(f"[green]{result['message']}[/green]")
+                else:
+                    output.write(f"[red]{result['message']}[/red]")
+
+                # Reset state
+                self._commit_waiting_for_confirmation = False
+                self._pending_commit_message = None
+                input_widget = self.query_one("#input")
+                input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, or /clear"
+
+            elif choice == "edit":
+                # Allow user to edit the commit message
+                output.write(f"[yellow]Current message: \"{self._pending_commit_message}\"[/yellow]")
+                output.write("[yellow]Enter your modified commit message:[/yellow]")
+                input_widget = self.query_one("#input")
+                input_widget.placeholder = "Enter your commit message"
+                # Stay in the same state, next input will be the new message
+
+            elif choice.startswith("edit ") or (choice != "yes" and choice != "no" and self._pending_commit_message):
+                # User provided a new commit message
+                if choice.startswith("edit "):
+                    new_message = choice[5:].strip()
+                else:
+                    new_message = choice
+                
+                if new_message:
+                    self._pending_commit_message = new_message
+                    output.write(f"[green]✅ Updated commit message: \"{new_message}\"[/green]")
+                    output.write("[yellow]Execute this commit? (yes/no/edit):[/yellow]")
+                    input_widget = self.query_one("#input")
+                    input_widget.placeholder = "yes/no/edit"
+                else:
+                    output.write("[red]Empty commit message. Please try again.[/red]")
+
+            else:
+                output.write("[red]Please enter 'yes', 'no', or 'edit'[/red]")
+
+        except Exception as e:
+            output.write(f"[red]Error during commit confirmation: {e}[/red]")
+            self._commit_waiting_for_confirmation = False
+            self._pending_commit_message = None
+            input_widget = self.query_one("#input")
+            input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, or /clear"
 
     def _show_progress(self, message: str = "Processing..."):
         """Show progress bar with message."""
@@ -517,8 +654,10 @@ class WelcomeApp(App):
         self._init_waiting_for_path = False
         self._clean_waiting_for_action = False
         self._pending_clean_action = None
+        self._commit_waiting_for_confirmation = False
+        self._pending_commit_message = None
         input_widget = self.query_one("#input")
-        input_widget.placeholder = "Type /setup, /models, /init, /clean, or /clear"
+        input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, or /clear"
 
 
 if __name__ == "__main__":

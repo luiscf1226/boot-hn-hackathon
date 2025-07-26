@@ -11,6 +11,7 @@ from app.commands.setup_command import SetupCommand
 from app.commands.models_command import ModelsCommand
 from app.commands.init_command import InitCommand
 from app.commands.clean_command import CleanCommand
+from app.commands.commit_command import CommitCommand
 from app.core.database import get_db, create_tables
 
 
@@ -35,6 +36,9 @@ class CommandManager:
         
         # Register clean command
         self._commands[AgentCommand.CLEAN] = CleanCommand
+        
+        # Register commit command
+        self._commands[AgentCommand.COMMIT] = CommitCommand
 
         # TODO: Register other commands as they are implemented
         # etc.
