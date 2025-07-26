@@ -1,0 +1,12 @@
+Please generate a commit message for these changes:
+
+STAGED FILES:
+{staged_files}
+
+GIT DIFF:
+{staged_diff}
+
+RECENT COMMITS (for context):
+{recent_commits}
+
+Generate a professional commit message that clearly describes these changes.

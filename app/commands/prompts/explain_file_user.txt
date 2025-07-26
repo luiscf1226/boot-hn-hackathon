@@ -1,0 +1,13 @@
+Please analyze this file:
+
+**File:** {file_path}
+**Name:** {file_name}
+**Extension:** {file_extension}
+**Size:** {file_size} characters
+
+**Content:**
+```
+{file_content}
+```
+
+Provide a thorough analysis explaining what this file does, how it's structured, and what can be learned from it.

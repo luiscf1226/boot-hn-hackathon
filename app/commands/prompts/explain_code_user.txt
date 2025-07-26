@@ -1,0 +1,7 @@
+Please analyze and explain this code:
+
+```
+{code}
+```
+
+Provide a comprehensive explanation that helps understand what this code does, how it works, and what can be learned from it.

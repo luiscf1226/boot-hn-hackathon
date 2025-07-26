@@ -1,0 +1,12 @@
+Please analyze this project directory:
+
+**Current Directory:** {current_dir}
+**Project Name:** {project_name}
+
+**Directory Structure:**
+{dir_structure}
+
+**Key Files Found:**
+{key_files}
+
+Analyze the project structure, identify the technology stack, architectural patterns, and provide insights about how this project is organized.

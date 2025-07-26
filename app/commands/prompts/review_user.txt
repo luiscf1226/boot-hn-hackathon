@@ -1,0 +1,12 @@
+Please review these code changes:
+
+GIT STATUS:
+{git_status}
+
+CODE CHANGES:
+{changes_diff}
+
+RECENT COMMITS (for context):
+{recent_commits}
+
+Provide a thorough code review with specific, actionable feedback.
