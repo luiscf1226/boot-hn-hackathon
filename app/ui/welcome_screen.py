@@ -2,7 +2,6 @@
 Welcome screen for the Textual UI.
 """
 
-import asyncio
 from typing import Optional
 from textual.app import App, ComposeResult
 from textual.containers import Container, Vertical
@@ -19,8 +18,8 @@ class WelcomeApp(App):
     
     def __init__(self):
         super().__init__()
-        self._waiting_for_input = False
-        self._input_future: Optional[asyncio.Future] = None
+        self._setup_step = None
+        self._models = []
 
     def compose(self) -> ComposeResult:
         """Compose the main app layout."""
@@ -95,9 +94,9 @@ class WelcomeApp(App):
 
         output.write(f"[yellow]> {text}[/yellow]")
 
-        # If we're waiting for user response to a prompt
-        if self._waiting_for_input and self._input_future:
-            self._input_future.set_result(text)
+        # If we're in setup mode waiting for model selection
+        if self._setup_step == "model_selection":
+            await self._handle_model_choice(output, text)
             return
 
         # Handle commands
@@ -117,31 +116,16 @@ class WelcomeApp(App):
             if result.get("prompt") == "model":
                 # Show models
                 output.write(f"\n[green]{result['message']}[/green]")
-                models = result.get("available_models", [])
+                self._models = result.get("available_models", [])
 
-                for i, model in enumerate(models, 1):
+                for i, model in enumerate(self._models, 1):
                     output.write(f"  {i}. {model}")
 
-                # Ask for input
-                choice = await self._ask_user("Enter number (1-4):")
-
-                # Parse choice
-                try:
-                    num = int(choice)
-                    if 1 <= num <= len(models):
-                        selected = models[num - 1]
-
-                        # Execute with selected model
-                        final_result = await command_manager.execute_command("setup", model=selected)
-
-                        if final_result.get("success"):
-                            output.write(f"[green]{final_result['message']}[/green]")
-                        else:
-                            output.write(f"[red]{final_result['message']}[/red]")
-                    else:
-                        output.write("[red]Invalid number[/red]")
-                except ValueError:
-                    output.write("[red]Please enter a number[/red]")
+                # Set state to wait for model selection
+                output.write("[yellow]Enter number (1-4):[/yellow]")
+                self._setup_step = "model_selection"
+                input_widget = self.query_one("#input")
+                input_widget.placeholder = "Enter number (1-4)"
 
             elif result.get("success"):
                 output.write(f"[green]{result['message']}[/green]")
@@ -151,25 +135,30 @@ class WelcomeApp(App):
         except Exception as e:
             output.write(f"[red]Error: {e}[/red]")
 
-    async def _ask_user(self, prompt: str) -> str:
-        """Ask user for input and wait for response."""
-        output = self.query_one("#output")
-        input_widget = self.query_one("#input")
-
-        output.write(f"[yellow]{prompt}[/yellow]")
-        input_widget.placeholder = prompt
-
-        # Set up future and wait
-        self._waiting_for_input = True
-        self._input_future = asyncio.get_event_loop().create_future()
-
+    async def _handle_model_choice(self, output: RichLog, choice: str) -> None:
+        """Handle model selection choice."""
         try:
-            result = await self._input_future
-            return result
-        finally:
-            self._waiting_for_input = False
-            self._input_future = None
-            input_widget.placeholder = "Type /setup and press Enter"
+            num = int(choice)
+            if 1 <= num <= len(self._models):
+                selected = self._models[num - 1]
+                
+                # Execute with selected model
+                final_result = await command_manager.execute_command("setup", model=selected)
+
+                if final_result.get("success"):
+                    output.write(f"[green]{final_result['message']}[/green]")
+                else:
+                    output.write(f"[red]{final_result['message']}[/red]")
+                    
+                # Reset state
+                self._setup_step = None
+                self._models = []
+                input_widget = self.query_one("#input")
+                input_widget.placeholder = "Type /setup and press Enter"
+            else:
+                output.write("[red]Invalid number. Please enter 1-4[/red]")
+        except ValueError:
+            output.write("[red]Please enter a number (1-4)[/red]")
 
 
 if __name__ == "__main__":
