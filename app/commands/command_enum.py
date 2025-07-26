@@ -10,42 +10,14 @@ from typing import Dict, List
 class AgentCommand(Enum):
     """Enumeration of all available agent commands."""
 
-    # File operations
-    CREATE_FILE = "create_file"
-    READ_FILE = "read_file"
-    EDIT_FILE = "edit_file"
-    DELETE_FILE = "delete_file"
-    LIST_FILES = "list_files"
-
-    # Code operations
-    ANALYZE_CODE = "analyze_code"
-    GENERATE_CODE = "generate_code"
-    REFACTOR_CODE = "refactor_code"
-    DEBUG_CODE = "debug_code"
-    FORMAT_CODE = "format_code"
-
-    # Project operations
-    CREATE_PROJECT = "create_project"
-    BUILD_PROJECT = "build_project"
-    TEST_PROJECT = "test_project"
-    DEPLOY_PROJECT = "deploy_project"
-
-    # AI operations
-    ASK_AI = "ask_ai"
-    EXPLAIN_CODE = "explain_code"
-    SUGGEST_IMPROVEMENTS = "suggest_improvements"
-    GENERATE_DOCS = "generate_docs"
-
-    # System operations
-    EXECUTE_COMMAND = "execute_command"
-    INSTALL_PACKAGE = "install_package"
-    SEARCH_FILES = "search_files"
-
-    # Agent operations
-    SHOW_HELP = "show_help"
-    SHOW_STATUS = "show_status"
-    CLEAR_CONTEXT = "clear_context"
-    EXIT = "exit"
+    # Core workflow commands
+    SETUP = "setup"
+    MODELS = "models"
+    INIT = "init"
+    REVIEW_CHANGES = "review-changes"
+    EXPLAIN = "explain"
+    COMMIT = "commit"
+    CLEAN = "clean"
 
 
 class CommandInfo:
@@ -59,144 +31,55 @@ class CommandInfo:
 
 # Command descriptions and categories
 COMMAND_INFO: Dict[AgentCommand, CommandInfo] = {
-    # File operations
-    AgentCommand.CREATE_FILE: CommandInfo(
-        AgentCommand.CREATE_FILE,
-        "Create a new file with specified content",
-        "File Operations"
+    # Development workflow commands
+    AgentCommand.SETUP: CommandInfo(
+        AgentCommand.SETUP,
+        "Configure the agent settings and preferences",
+        "Agent Configuration"
     ),
-    AgentCommand.READ_FILE: CommandInfo(
-        AgentCommand.READ_FILE,
-        "Read and display the contents of a file",
-        "File Operations"
+    AgentCommand.MODELS: CommandInfo(
+        AgentCommand.MODELS,
+        "Display database models and their relationships",
+        "Database Operations"
     ),
-    AgentCommand.EDIT_FILE: CommandInfo(
-        AgentCommand.EDIT_FILE,
-        "Edit an existing file",
-        "File Operations"
+    AgentCommand.INIT: CommandInfo(
+        AgentCommand.INIT,
+        "Create project documentation, README, and save context",
+        "Project Initialization"
     ),
-    AgentCommand.DELETE_FILE: CommandInfo(
-        AgentCommand.DELETE_FILE,
-        "Delete a file from the filesystem",
-        "File Operations"
+    AgentCommand.REVIEW_CHANGES: CommandInfo(
+        AgentCommand.REVIEW_CHANGES,
+        "Get git diff and perform code review analysis",
+        "Code Review"
     ),
-    AgentCommand.LIST_FILES: CommandInfo(
-        AgentCommand.LIST_FILES,
-        "List files in a directory",
-        "File Operations"
+    AgentCommand.EXPLAIN: CommandInfo(
+        AgentCommand.EXPLAIN,
+        "Explain code from file or pasted content",
+        "Code Analysis"
     ),
-
-    # Code operations
-    AgentCommand.ANALYZE_CODE: CommandInfo(
-        AgentCommand.ANALYZE_CODE,
-        "Analyze code for issues and improvements",
-        "Code Operations"
+    AgentCommand.COMMIT: CommandInfo(
+        AgentCommand.COMMIT,
+        "Generate intelligent commit messages based on changes",
+        "Version Control"
     ),
-    AgentCommand.GENERATE_CODE: CommandInfo(
-        AgentCommand.GENERATE_CODE,
-        "Generate code based on requirements",
-        "Code Operations"
-    ),
-    AgentCommand.REFACTOR_CODE: CommandInfo(
-        AgentCommand.REFACTOR_CODE,
-        "Refactor existing code for better structure",
-        "Code Operations"
-    ),
-    AgentCommand.DEBUG_CODE: CommandInfo(
-        AgentCommand.DEBUG_CODE,
-        "Help debug code issues",
-        "Code Operations"
-    ),
-    AgentCommand.FORMAT_CODE: CommandInfo(
-        AgentCommand.FORMAT_CODE,
-        "Format code according to standards",
-        "Code Operations"
-    ),
-
-    # Project operations
-    AgentCommand.CREATE_PROJECT: CommandInfo(
-        AgentCommand.CREATE_PROJECT,
-        "Create a new project structure",
-        "Project Operations"
-    ),
-    AgentCommand.BUILD_PROJECT: CommandInfo(
-        AgentCommand.BUILD_PROJECT,
-        "Build the current project",
-        "Project Operations"
-    ),
-    AgentCommand.TEST_PROJECT: CommandInfo(
-        AgentCommand.TEST_PROJECT,
-        "Run tests for the project",
-        "Project Operations"
-    ),
-    AgentCommand.DEPLOY_PROJECT: CommandInfo(
-        AgentCommand.DEPLOY_PROJECT,
-        "Deploy the project",
-        "Project Operations"
-    ),
-
-    # AI operations
-    AgentCommand.ASK_AI: CommandInfo(
-        AgentCommand.ASK_AI,
-        "Ask the AI agent a question",
-        "AI Operations"
-    ),
-    AgentCommand.EXPLAIN_CODE: CommandInfo(
-        AgentCommand.EXPLAIN_CODE,
-        "Get AI explanation of code",
-        "AI Operations"
-    ),
-    AgentCommand.SUGGEST_IMPROVEMENTS: CommandInfo(
-        AgentCommand.SUGGEST_IMPROVEMENTS,
-        "Get AI suggestions for improvements",
-        "AI Operations"
-    ),
-    AgentCommand.GENERATE_DOCS: CommandInfo(
-        AgentCommand.GENERATE_DOCS,
-        "Generate documentation using AI",
-        "AI Operations"
-    ),
-
-    # System operations
-    AgentCommand.EXECUTE_COMMAND: CommandInfo(
-        AgentCommand.EXECUTE_COMMAND,
-        "Execute a system command",
-        "System Operations"
-    ),
-    AgentCommand.INSTALL_PACKAGE: CommandInfo(
-        AgentCommand.INSTALL_PACKAGE,
-        "Install a package or dependency",
-        "System Operations"
-    ),
-    AgentCommand.SEARCH_FILES: CommandInfo(
-        AgentCommand.SEARCH_FILES,
-        "Search for files or content",
-        "System Operations"
-    ),
-
-    # Agent operations
-    AgentCommand.SHOW_HELP: CommandInfo(
-        AgentCommand.SHOW_HELP,
-        "Show help information",
-        "Agent Operations"
-    ),
-    AgentCommand.SHOW_STATUS: CommandInfo(
-        AgentCommand.SHOW_STATUS,
-        "Show agent status and context",
-        "Agent Operations"
-    ),
-    AgentCommand.CLEAR_CONTEXT: CommandInfo(
-        AgentCommand.CLEAR_CONTEXT,
-        "Clear the agent's context",
-        "Agent Operations"
-    ),
-    AgentCommand.EXIT: CommandInfo(
-        AgentCommand.EXIT,
-        "Exit the agent",
-        "Agent Operations"
+    AgentCommand.CLEAN: CommandInfo(
+        AgentCommand.CLEAN,
+        "Delete SQLite database and clean up temporary files",
+        "Maintenance"
     ),
 }
 
+
+def get_commands_by_category() -> Dict[str, List[CommandInfo]]:
+    """Get commands organized by category."""
+    categories: Dict[str, List[CommandInfo]] = {}
+
+    for cmd_info in COMMAND_INFO.values():
+        if cmd_info.category not in categories:
+            categories[cmd_info.category] = []
+        categories[cmd_info.category].append(cmd_info)
+
+    return categories
 
 
 def get_all_commands() -> List[CommandInfo]:
