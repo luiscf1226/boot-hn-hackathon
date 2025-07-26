@@ -336,3 +336,52 @@ def get_recent_commits(count: int = 5) -> str:
         return "❌ Git log command timed out"
     except Exception as e:
         return f"❌ Error getting commit history: {str(e)}"
+
+
+def get_all_changes_diff() -> str:
+    """
+    Get the diff of all changes (staged and unstaged) for code review.
+    
+    Returns:
+        String with complete diff content
+    """
+    try:
+        # Get both staged and unstaged changes
+        result = subprocess.run(
+            ["git", "diff", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode != 0:
+            return f"❌ Git diff failed: {result.stderr}"
+            
+        diff_content = result.stdout.strip()
+        
+        if not diff_content:
+            # Try to get staged changes if no HEAD diff
+            staged_result = subprocess.run(
+                ["git", "diff", "--cached"],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            
+            if staged_result.returncode == 0 and staged_result.stdout.strip():
+                diff_content = staged_result.stdout.strip()
+            else:
+                return "❌ No changes found to review"
+            
+        # Limit diff size for AI processing
+        if len(diff_content) > 8000:
+            lines = diff_content.split('\n')
+            limited_diff = '\n'.join(lines[:150])  # First 150 lines
+            return f"{limited_diff}\n\n... (diff truncated for review analysis)"
+        
+        return diff_content
+        
+    except subprocess.TimeoutExpired:
+        return "❌ Git diff command timed out"
+    except Exception as e:
+        return f"❌ Error getting changes diff: {str(e)}"

@@ -31,6 +31,8 @@ class WelcomeApp(App):
         self._pending_clean_action = None
         self._commit_waiting_for_confirmation = False
         self._pending_commit_message = None
+        self._review_waiting_for_confirmation = False
+        self._pending_review_data = None
 
     def compose(self) -> ComposeResult:
         """Compose the main app layout."""
@@ -134,7 +136,7 @@ class WelcomeApp(App):
         """Clear the terminal output."""
         output = self.query_one("#output")
         output.clear()
-        output.write("🧹 Terminal cleared! Type [bold]/setup[/bold], [bold]/models[/bold], [bold]/init[/bold], [bold]/clean[/bold], [bold]/commit[/bold], or [bold]/clear[/bold].")
+        output.write("🧹 Terminal cleared! Type [bold]/setup[/bold], [bold]/models[/bold], [bold]/init[/bold], [bold]/clean[/bold], [bold]/commit[/bold], [bold]/review-changes[/bold], or [bold]/clear[/bold].")
 
     async def on_input_submitted(self, event: Input.Submitted) -> None:
         """Handle input submission."""
@@ -165,6 +167,11 @@ class WelcomeApp(App):
         if self._commit_waiting_for_confirmation:
             await self._handle_commit_confirmation(output, text)
             return
+            
+        # If we're waiting for review confirmation
+        if self._review_waiting_for_confirmation:
+            await self._handle_review_confirmation(output, text)
+            return
 
         # Handle commands
         if text == "/setup":
@@ -177,10 +184,12 @@ class WelcomeApp(App):
             await self._handle_clean(output)
         elif text == "/commit":
             await self._handle_commit(output)
+        elif text == "/review-changes":
+            await self._handle_review(output)
         elif text == "/clear":
             await self.action_clear_terminal()
         elif text:
-            output.write("[red]Unknown command. Use /setup, /models, /init, /clean, /commit, or /clear[/red]")
+            output.write("[red]Unknown command. Use /setup, /models, /init, /clean, /commit, /review-changes, or /clear[/red]")
 
     async def _handle_setup(self, output: RichLog) -> None:
         """Handle setup command step by step."""
@@ -362,7 +371,7 @@ class WelcomeApp(App):
             output.write(f"[red]Error during clean operation: {e}[/red]")
             self._clean_waiting_for_action = False
             input_widget = self.query_one("#input")
-            input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, or /clear"
+            input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, /review-changes, or /clear"
 
     async def _handle_commit(self, output: RichLog) -> None:
         """Handle commit command step by step."""
@@ -444,7 +453,7 @@ class WelcomeApp(App):
                 self._commit_waiting_for_confirmation = False
                 self._pending_commit_message = None
                 input_widget = self.query_one("#input")
-                input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, or /clear"
+                input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, /review-changes, or /clear"
                 return
 
             if choice == "yes":
@@ -461,7 +470,7 @@ class WelcomeApp(App):
                 self._commit_waiting_for_confirmation = False
                 self._pending_commit_message = None
                 input_widget = self.query_one("#input")
-                input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, or /clear"
+                input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, /review-changes, or /clear"
 
             elif choice == "edit":
                 # Allow user to edit the commit message
@@ -495,7 +504,96 @@ class WelcomeApp(App):
             self._commit_waiting_for_confirmation = False
             self._pending_commit_message = None
             input_widget = self.query_one("#input")
-            input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, or /clear"
+            input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, /review-changes, or /clear"
+
+    async def _handle_review(self, output: RichLog) -> None:
+        """Handle review-changes command."""
+        try:
+            from app.commands.command_manager import command_manager
+            
+            output.write("[blue]🔍 Running AI code review...[/blue]")
+            
+            # Show realistic progress with multiple steps
+            progress_task = asyncio.create_task(self._animate_progress(output, "Review", 45.0))
+            
+            try:
+                result = await command_manager.execute_command("review-changes")
+            except Exception as e:
+                if not progress_task.done():
+                    progress_task.cancel()
+                raise e
+            finally:
+                if not progress_task.done():
+                    progress_task.cancel()
+                self._hide_progress()
+
+            if result.get("prompt") == "review_save_confirm":
+                # Show git status
+                output.write(f"\n{result.get('git_status', '')}")
+                
+                # Show AI review
+                review_content = result.get("review_content", "")
+                output.write(f"\n[green]{result['message']}[/green]")
+                output.write(f"\n{review_content}")
+                
+                # Show AI info
+                output.write(f"[dim]Generated by: {result.get('ai_model', 'Unknown')} (Session: {result.get('session_id', 'Unknown')})[/dim]")
+                
+                # Ask for confirmation
+                output.write("\n[yellow]Save this review to database? (yes/no):[/yellow]")
+                output.write("[dim]• yes - Save review for future reference[/dim]")
+                output.write("[dim]• no - Discard review[/dim]")
+                
+                self._review_waiting_for_confirmation = True
+                self._pending_review_data = result
+                input_widget = self.query_one("#input")
+                input_widget.placeholder = "yes/no"
+
+            elif result.get("success"):
+                output.write(f"[green]{result['message']}[/green]")
+            else:
+                output.write(f"[red]{result['message']}[/red]")
+
+        except Exception as e:
+            # Ensure progress bar is hidden on error
+            self._hide_progress()
+            output.write(f"[red]❌ Error during review: {e}[/red]")
+
+    async def _handle_review_confirmation(self, output: RichLog, choice: str) -> None:
+        """Handle review confirmation choice."""
+        try:
+            choice = choice.lower().strip()
+            
+            # Allow empty input to cancel
+            if not choice or choice == "no":
+                output.write("[dim]Review discarded (not saved to database).[/dim]")
+                self._review_waiting_for_confirmation = False
+                self._pending_review_data = None
+                input_widget = self.query_one("#input")
+                input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, /review-changes, or /clear"
+                return
+
+            if choice == "yes":
+                # Review is already saved to database via the agent.send_system_message call
+                output.write("[green]✅ Code review saved to database successfully![/green]")
+                session_id = self._pending_review_data.get("session_id", "Unknown")
+                output.write(f"[dim]Session ID: {session_id}[/dim]")
+                
+                # Reset state
+                self._review_waiting_for_confirmation = False
+                self._pending_review_data = None
+                input_widget = self.query_one("#input")
+                input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, /review-changes, or /clear"
+
+            else:
+                output.write("[red]Please enter 'yes' or 'no'[/red]")
+
+        except Exception as e:
+            output.write(f"[red]Error during review confirmation: {e}[/red]")
+            self._review_waiting_for_confirmation = False
+            self._pending_review_data = None
+            input_widget = self.query_one("#input")
+            input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, /review-changes, or /clear"
 
     def _show_progress(self, message: str = "Processing..."):
         """Show progress bar with message."""
@@ -525,6 +623,18 @@ class WelcomeApp(App):
                 "📝 Following git best practices...",
                 "🎨 Formatting commit message...",
                 "💾 Preparing commit preview..."
+            ]
+        elif "Review" in message:
+            loading_messages = [
+                "🔍 Checking git repository status...",
+                "📊 Scanning code changes (staged & unstaged)...",
+                "📁 Reading modified files...",
+                "🔐 Analyzing security implications...",
+                "🤖 Senior engineer AI reviewing code...",
+                "⚠️  Identifying potential issues...",
+                "💡 Generating improvement suggestions...",
+                "🧪 Evaluating test coverage needs...",
+                "📝 Preparing comprehensive review..."
             ]
         else:
             # Default messages for init/documentation
@@ -674,8 +784,10 @@ class WelcomeApp(App):
         self._pending_clean_action = None
         self._commit_waiting_for_confirmation = False
         self._pending_commit_message = None
+        self._review_waiting_for_confirmation = False
+        self._pending_review_data = None
         input_widget = self.query_one("#input")
-        input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, or /clear"
+        input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, /review-changes, or /clear"
 
 
 if __name__ == "__main__":

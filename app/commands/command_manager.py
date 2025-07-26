@@ -12,6 +12,7 @@ from app.commands.models_command import ModelsCommand
 from app.commands.init_command import InitCommand
 from app.commands.clean_command import CleanCommand
 from app.commands.commit_command import CommitCommand
+from app.commands.review_command import ReviewCommand
 from app.core.database import get_db, create_tables
 
 
@@ -39,6 +40,9 @@ class CommandManager:
         
         # Register commit command
         self._commands[AgentCommand.COMMIT] = CommitCommand
+        
+        # Register review command
+        self._commands[AgentCommand.REVIEW_CHANGES] = ReviewCommand
 
         # TODO: Register other commands as they are implemented
         # etc.
