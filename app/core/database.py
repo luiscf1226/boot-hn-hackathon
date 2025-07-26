@@ -53,6 +53,6 @@ def create_tables():
     engine = get_engine()
 
     # Import all models here to ensure they're registered
-    from app.models import user
+    from app.models import user, agent
 
     Base.metadata.create_all(bind=engine)

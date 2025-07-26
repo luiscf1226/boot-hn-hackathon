@@ -8,6 +8,8 @@ from sqlalchemy.orm import Session
 
 from app.commands.command_enum import AgentCommand
 from app.commands.setup_command import SetupCommand
+from app.commands.models_command import ModelsCommand
+from app.commands.init_command import InitCommand
 from app.core.database import get_db, create_tables
 
 
@@ -23,10 +25,14 @@ class CommandManager:
         """Register all available commands."""
         # Register setup command
         self._commands[AgentCommand.SETUP] = SetupCommand
+        
+        # Register models command
+        self._commands[AgentCommand.MODELS] = ModelsCommand
+        
+        # Register init command
+        self._commands[AgentCommand.INIT] = InitCommand
 
         # TODO: Register other commands as they are implemented
-        # self._commands[AgentCommand.MODELS] = ModelsCommand
-        # self._commands[AgentCommand.INIT] = InitCommand
         # etc.
 
     def _ensure_db_initialized(self):

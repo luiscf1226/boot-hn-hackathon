@@ -19,6 +19,9 @@ python-dotenv==1.0.0
 httpx==0.25.2
 aiohttp==3.9.1
 
+# Google Generative AI
+google-generativeai==0.3.2
+
 # Textual UI - make sure we have the right version
 textual==0.45.1
 rich==13.7.0
