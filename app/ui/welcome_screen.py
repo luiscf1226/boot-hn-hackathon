@@ -512,19 +512,34 @@ class WelcomeApp(App):
             from app.commands.command_manager import command_manager
             
             output.write("[blue]🔍 Running AI code review...[/blue]")
+            output.write("[yellow]⏳ Don't worry, it's not broken! We're calling the AI - this can take 30-60 seconds...[/yellow]")
+            
+            # Show progress bar immediately
+            self._show_progress("🤖 Initializing AI Code Review...")
+            await asyncio.sleep(0.1)  # Small delay to ensure UI updates
             
             # Show realistic progress with multiple steps
             progress_task = asyncio.create_task(self._animate_progress(output, "Review", 45.0))
             
+            # Execute review command
+            command_task = asyncio.create_task(
+                command_manager.execute_command("review-changes")
+            )
+            
+            # Wait for command to complete
             try:
-                result = await command_manager.execute_command("review-changes")
+                result = await command_task
+                progress_task.cancel()
+                
+                # Complete progress bar
+                progress = self.query_one("#progress")
+                progress.update(progress=100)
+                await asyncio.sleep(0.5)
+                
             except Exception as e:
-                if not progress_task.done():
-                    progress_task.cancel()
+                progress_task.cancel()
                 raise e
             finally:
-                if not progress_task.done():
-                    progress_task.cancel()
                 self._hide_progress()
 
             if result.get("prompt") == "review_save_confirm":
