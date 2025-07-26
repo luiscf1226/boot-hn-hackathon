@@ -1,180 +1,158 @@
-# 🤖 boot-hn - AI Coding Agent
+```markdown
+# Hackathon Project
 
-A powerful CLI-based AI coding agent built with Python, FastAPI, and Textual UI. Your intelligent coding companion for development tasks.
+This project is a Python-based application developed during a hackathon. It appears to be a complex system involving agents, APIs, a command-line interface, and a user interface, potentially related to AI agents or automation.  It utilizes a database (`app.db`), and appears to have features for code generation, file management, and Git operations.
 
-## ✨ Features
+## Installation
 
-- **Interactive Textual UI** - Beautiful terminal-based interface with command execution
-- **AI-Powered Code Assistant** - Local Gemini AI integration
-- **Focused Development Commands** - Essential workflow commands for coding
-- **SQLite Database** - Local data storage with SQLAlchemy ORM
-- **Clean Architecture** - SOLID principles with proper separation of concerns
+1.  **Clone the repository:**
 
-## 🚀 Quick Start
+    ```bash
+    git clone <repository_url>
+    cd hackathon
+    ```
 
-### 1. Setup Environment
+2.  **Create a virtual environment (recommended):**
 
-```bash
-# Clone and navigate to project
-cd hackathon
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate  # On Linux/macOS
+    # venv\Scripts\activate  # On Windows
+    ```
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+3.  **Install dependencies:**
 
-# Install dependencies
-pip install -r requirements.txt
-```
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-### 2. Run the Application
+4.  **Configure environment variables:**
 
-```bash
-# Start the AI Coding Agent
-python main.py
-```
+    *   Copy the `.env` file (if it exists) and populate the necessary environment variables.
+    *   Alternatively, define the environment variables directly in your system.
+    *   **Important:** Ensure you understand what each variable controls, especially database connection details and API keys.
 
-### 3. Use the Command Interface
+5. **Database Migrations (if applicable):**
+    ```bash
+    alembic upgrade head
+    ```
+    This step uses Alembic (configured in `alembic.ini`) to apply database migrations, setting up the initial database schema.
 
-1. **Welcome Screen** - Shows available commands and instructions
-2. **Press Enter** - Enters the command interface
-3. **Type `/setup`** - Configure your Gemini API key and model
-4. **Use other commands** - Type `/help` to see all available commands
+## Usage Examples
 
-## 🎯 Available Commands
+Based on the project structure, here are a few potential usage examples.  These will likely require customization based on the specific functionality of the app.
 
-### **Command Interface Usage:**
-All commands must start with `/` and are executed in the command interface:
+1.  **Running the main application:**
 
-1. **`/setup`** - Configure Gemini API key and model selection
-   - Prompts for API key (get one from [Google AI Studio](https://makersuite.google.com/app/apikey))
-   - Choose from available models (gemini-2.0-flash-exp, gemini-1.5-pro, etc.)
-   - Saves configuration to local SQLite database
+    ```bash
+    python main.py
+    ```
+    This is the likely entry point. Consult the `main.py` file for specific command-line arguments or execution details. It might launch a UI, start an API server, or execute a specific command.
 
-2. **`/models`** - Display database models and relationships *(Coming Soon)*
-3. **`/init`** - Create project documentation and save context *(Coming Soon)*
-4. **`/review-changes`** - Git diff analysis and code review *(Coming Soon)*
-5. **`/explain`** - Explain code from files or pasted content *(Coming Soon)*
-6. **`/commit`** - Generate intelligent commit messages *(Coming Soon)*
-7. **`/clean`** - Delete SQLite database and cleanup *(Coming Soon)*
+2.  **Interacting with the API (if applicable):**
 
-### **UI Commands:**
-- **`/help`** - Show detailed help with all commands
-- **`/exit`** or **`/quit`** - Exit the application
-- **`/clear`** - Clear command history
-- **`Escape`** - Go back to welcome screen
-- **`Ctrl+L`** - Clear command history (keyboard shortcut)
+    The project includes API routes in `app/api/routes`. To interact with these, you'll likely need to run the application (see above) which should start an API server.  Then, use tools like `curl`, `httpie`, or Postman to send requests to the exposed endpoints. For example:
 
-## 🎮 How to Use
+    ```bash
+    # Example (replace with actual endpoint)
+    curl http://localhost:8000/api/agent
+    ```
 
-### **1. Start the Application**
-```bash
-python main.py
-```
+3.  **Using CLI commands (if applicable):**
 
-### **2. Welcome Screen**
-- Shows all available commands
-- Press `Enter` to start command interface
-- Press `q` or `Ctrl+C` to quit
+    The `app/commands` directory suggests the presence of command-line tools.  Check the `command_manager.py` to understand the available commands and their usage. You might run commands like:
 
-### **3. Command Interface**
-- Type commands starting with `/`
-- Example: `/setup` to configure agent
-- Press `Escape` to go back to welcome
-- View command history in the scrollable area
+    ```bash
+    python main.py init  # Example: could initialize the project
+    python main.py clean  # Example: could clean up temporary files
+    ```
 
-### **4. Setup Your Agent (First Time)**
-```
-$ /setup
+    The `main.py` file is likely the entry point for CLI commands.
+    Check for argument parsing setup.
 
-🤖 Welcome to Agent Setup!
-==================================================
-
-🔑 Gemini API Key Configuration
------------------------------------
-Please enter your Gemini API key:
-(You can get one from: https://makersuite.google.com/app/apikey)
-
-🔑 API Key: [your_api_key_here]
-
-🤖 Model Selection
---------------------
-Available Gemini models:
-  1. gemini-2.0-flash-exp
-  2. gemini-1.5-pro
-  3. gemini-1.5-flash
-  4. gemini-pro
-
-🤖 Model choice: 2
-✅ Selected: gemini-1.5-pro
-
-✅ Setup completed successfully!
-🔑 API Key: ****your_key
-🤖 Selected Model: gemini-1.5-pro
-```
-
-## 🏗️ Project Structure
+## Project Structure Overview
 
 ```
 hackathon/
-├── main.py                    # Application entry point
-├── requirements.txt           # Python dependencies
-├── env.example               # Environment variables template
-├── alembic.ini               # Alembic configuration
-├── app/
-│   ├── commands/             # Command implementations
-│   │   ├── command_enum.py   # Available commands enum
-│   │   ├── command_manager.py # Command execution manager
-│   │   ├── setup_command.py  # Setup command (fully implemented)
-│   │   └── base.py          # Base command classes
-│   ├── models/              # SQLAlchemy models
-│   │   └── user.py          # User & settings models with business logic
-│   ├── core/                # Core utilities
-│   │   ├── config.py        # Application configuration
-│   │   └── database.py      # Database connection
-│   └── ui/                  # Textual UI components
-│       ├── welcome_screen.py # Welcome screen
-│       └── command_screen.py # Command interface
+├── alembic/                  # Database migration scripts and configuration
+│   ├── versions/           # Contains auto-generated migration scripts
+│   └── script.py.mako       # Template for generating migration scripts
+├── app/                      # Main application directory
+│   ├── agent/               # Components related to an "agent" (AI/Automation)
+│   │   ├── __init__.py
+│   │   ├── context.py         # Agent context management
+│   │   ├── core.py            # Core agent logic
+│   │   └── memory.py          # Agent memory management
+│   ├── api/                 # API related code
+│   │   ├── routes/           # API endpoint definitions
+│   │   │   ├── __init__.py
+│   │   │   ├── agent.py          # Routes related to the agent
+│   │   │   ├── auth.py           # Authentication routes
+│   │   │   └── commands.py       # Routes related to command execution
+│   │   ├── __init__.py
+│   │   └── dependencies.py    # API dependencies (e.g., database connections)
+│   ├── commands/            # Command-line interface (CLI) commands
+│   │   ├── __init__.py
+│   │   ├── base.py            # Base class for commands
+│   │   ├── clean_command.py   # Command to clean up project
+│   │   ├── code_commands.py   # Commands related to code generation
+│   │   ├── command_enum.py    # Enumeration of available commands
+│   │   ├── command_manager.py # Manages the execution of commands
+│   │   ├── commit_command.py  # Command to commit changes to Git
+│   │   ├── file_commands.py   # Commands related to file operations
+│   │   ├── init_command.py    # Command to initialize the project
+│   │   ├── models_command.py  # Commands related to data models
+│   │   └── setup_command.py   # Command to set up the project
+│   ├── core/                # Core application components
+│   │   ├── __init__.py
+│   │   ├── config.py          # Configuration settings
+│   │   ├── database.py        # Database connection and management
+│   │   └── exceptions.py      # Custom exception definitions
+│   ├── models/              # Data models for the application
+│   │   ├── __init__.py
+│   │   ├── agent.py           # Agent data model
+│   │   ├── api_call.py        # API call data model
+│   │   ├── command.py         # Command data model
+│   │   └── user.py            # User data model
+│   ├── schemas/             # Data validation schemas
+│   │   ├── __init__.py
+│   │   ├── agent.py           # Schemas for agent data
+│   │   ├── api_call.py        # Schemas for API call data
+│   │   ├── command.py         # Schemas for command data
+│   │   └── user.py            # Schemas for user data
+│   ├── ui/                  # User interface components
+│   │   ├── __init__.py
+│   │   ├── chat_screen.py    # Chat interface screen
+│   │   └── main_screen.py    # Main application screen
+│   ├── __init__.py
+│   ├── auth.py              # Authentication logic
+│   ├── database.py          # Database initialization and session management
+│   ├── main.py              # Main application entry point
+│   └── utils.py             # Utility functions
+├── .env                      # Environment configuration file (not tracked by Git)
+├── .gitignore                # Specifies intentionally untracked files that Git should ignore
+├── alembic.ini               # Alembic configuration file
+├── app.db                    # SQLite database file
+├── main.py                   # Main script to run the application
+├── README.md                 # This file
+└── requirements.txt          # List of Python dependencies
+
 ```
 
-## 🛠️ Architecture
+## Contributing Guidelines
 
-This project follows **Clean Architecture** principles:
+Contributions are welcome!  Here's how you can contribute:
 
-- **🎨 UI Layer** (`app/ui/`) - Textual interface components
-- **⚡ Command Layer** (`app/commands/`) - Command execution and user interaction
-- **💾 Model Layer** (`app/models/`) - Business logic and data operations
-- **🔧 Core Layer** (`app/core/`) - Configuration and database infrastructure
+1.  **Fork the repository:**  Create your own fork of the project.
+2.  **Create a branch:**  Create a new branch for your feature or bug fix: `git checkout -b feature/my-new-feature`
+3.  **Make changes:** Implement your changes, adhering to the project's coding style and conventions.
+4.  **Commit changes:** Commit your changes with clear and concise commit messages: `git commit -m "Add: descriptive commit message"`
+5.  **Push to your fork:** Push your branch to your forked repository: `git push origin feature/my-new-feature`
+6.  **Create a pull request:** Submit a pull request to the main repository, explaining your changes and their purpose.
 
-### **Key Design Principles:**
-- ✅ **Single Responsibility** - Each class has one clear purpose
-- ✅ **Separation of Concerns** - UI, commands, and data logic are separate
-- ✅ **Dependency Inversion** - Commands depend on model abstractions
-- ✅ **Clean Interfaces** - Clear contracts between layers
+**Coding Style:** Follow PEP 8 guidelines for Python code.
 
-## 🔧 Development Status
+**Testing:**  Add tests for your changes whenever possible.
 
-- ✅ **Setup Command** - Complete and functional
-- ✅ **UI Integration** - Command interface working
-- ✅ **Database Layer** - User and settings models
-- ✅ **Command Architecture** - Extensible command system
-- 🔄 **Other Commands** - Coming soon (models, init, review-changes, etc.)
-
-## 📝 Next Steps
-
-1. ✅ **Setup Command** - Complete with UI integration
-2. 🔄 **Models Command** - Display database models and relationships
-3. 🔄 **Init Command** - Create documentation and context
-4. 🔄 **Review Changes** - Git diff analysis
-5. 🔄 **Explain Command** - Code explanation
-6. 🔄 **Commit Command** - Smart commit messages
-7. 🔄 **Clean Command** - Database cleanup
-
-## 📝 License
-
-This project is part of a hackathon and is intended for educational and development purposes.
-
----
-
-**Happy Coding! 🚀**
-
-Ready to get started? Run `python main.py` and type `/setup` to configure your agent!
+**Communication:**  Use the project's issue tracker to report bugs, suggest features, or ask questions.
+```

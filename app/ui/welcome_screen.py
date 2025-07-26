@@ -368,6 +368,11 @@ class WelcomeApp(App):
         """Handle commit command step by step."""
         try:
             output.write("[blue]📝 Analyzing git repository and generating commit message...[/blue]")
+            output.write("[yellow]⏳ Don't worry, it's not broken! We're calling the AI - this can take 30-60 seconds...[/yellow]")
+            
+            # Show progress bar immediately
+            self._show_progress("🤖 Initializing AI Commit Message Generator...")
+            await asyncio.sleep(0.1)  # Small delay to ensure UI updates
             
             # Show progress animation for AI processing
             progress_task = asyncio.create_task(
@@ -507,19 +512,32 @@ class WelcomeApp(App):
         progress = self.query_one("#progress")
         progress.display = False
 
-    async def _animate_progress(self, output: RichLog, _message: str, duration: float = 60.0):
+    async def _animate_progress(self, output: RichLog, message: str, duration: float = 60.0):
         """Animate progress bar and show loading messages."""
-        # Loading messages to cycle through
-        loading_messages = [
-            "🔍 Analyzing project structure...",
-            "📊 Identifying programming languages...",
-            "📁 Reading important files...",
-            "🤖 Sending to AI for analysis...",
-            "✍️  AI is writing documentation...",
-            "📝 Generating README.md...",
-            "🎨 Formatting documentation...",
-            "💾 Saving files..."
-        ]
+        # Different loading messages based on the operation
+        if "Commit" in message:
+            loading_messages = [
+                "🔍 Checking git repository status...",
+                "📋 Analyzing staged files...",
+                "📊 Reading git diff changes...",
+                "🤖 Sending changes to AI for analysis...",
+                "✍️  AI is crafting commit message...",
+                "📝 Following git best practices...",
+                "🎨 Formatting commit message...",
+                "💾 Preparing commit preview..."
+            ]
+        else:
+            # Default messages for init/documentation
+            loading_messages = [
+                "🔍 Analyzing project structure...",
+                "📊 Identifying programming languages...",
+                "📁 Reading important files...",
+                "🤖 Sending to AI for analysis...",
+                "✍️  AI is writing documentation...",
+                "📝 Generating README.md...",
+                "🎨 Formatting documentation...",
+                "💾 Saving files..."
+            ]
         
         progress = self.query_one("#progress")
         message_index = 0
