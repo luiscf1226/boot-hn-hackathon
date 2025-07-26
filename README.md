@@ -10,6 +10,17 @@ First of all I want to be honest. I did use AI for the UI with copilot and tab. 
 
 I'm not sure if I'm gonna win but I'm just happy to represent Honduras and hope at least you found it interesting! 🇭🇳
 
+## Get Your Free API Key
+
+Before using this app, you'll need a **free** Google Gemini API key:
+
+1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Sign in with your Google account
+3. Click "Create API Key"
+4. Copy your key (keep it safe!)
+
+**Free tier includes:** 15 requests per minute, 1 million tokens per minute, 1,500 requests per day - perfect for personal use!
+
 ## Installation
 
 ### Option 1: Install from GitHub (Recommended)
