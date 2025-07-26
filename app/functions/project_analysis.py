@@ -9,68 +9,107 @@ from typing import List, Dict, Set
 from collections import defaultdict
 
 
+def resolve_project_path(input_path: str, project_root: str = None) -> Path:
+    """
+    Resolve a path relative to the project root, handling various input formats.
+
+    Args:
+        input_path: Input path that can be:
+                   - Absolute system path (/Users/name/project/file.py)
+                   - Relative to project root (/src/main.py -> project_root/src/main.py)
+                   - Relative path (src/main.py -> project_root/src/main.py)
+                   - Current directory (. or empty)
+        project_root: Project root directory (uses current dir if None)
+
+    Returns:
+        Path object with resolved path
+    """
+    if project_root:
+        base_path = Path(project_root).resolve()
+    else:
+        base_path = Path.cwd().resolve()
+
+    input_path = input_path.strip()
+
+    # Handle empty or current directory
+    if not input_path or input_path == "." or input_path == "./":
+        return base_path
+
+    path_obj = Path(input_path)
+
+    # Check if it's a real absolute system path (has multiple parts and exists or looks like system path)
+    if path_obj.is_absolute():
+        # If it starts with system root and has multiple parts, treat as absolute
+        if len(path_obj.parts) > 2 and (path_obj.exists() or str(path_obj).startswith(('/', 'C:', 'D:'))):
+            return path_obj.resolve()
+        else:
+            # Treat as relative to project root (remove leading slash)
+            relative_part = str(path_obj).lstrip('/')
+            return (base_path / relative_part).resolve()
+    else:
+        # Regular relative path
+        return (base_path / input_path).resolve()
+
+
 def get_project_structure(project_root: str = None, max_depth: int = 5, ignore_patterns: List[str] = None) -> str:
     """
     Get recursive project structure as a tree string.
-    
+
     Args:
         project_root: Project root directory (uses current dir if None)
         max_depth: Maximum depth to traverse
         ignore_patterns: Patterns to ignore (e.g., ['.git', '__pycache__', 'node_modules'])
-        
+
     Returns:
         String representation of project structure
     """
     try:
-        if project_root:
-            base_path = Path(project_root)
-        else:
-            base_path = Path.cwd()
-            
+        base_path = resolve_project_path(project_root or ".", None)
+
         if not base_path.exists():
             return f"Error: Directory '{base_path}' does not exist"
-            
+
         if not base_path.is_dir():
             return f"Error: '{base_path}' is not a directory"
-            
+
         # Default ignore patterns
         if ignore_patterns is None:
             ignore_patterns = [
-                '.git', '.gitignore', '__pycache__', '.pyc', 
+                '.git', '.gitignore', '__pycache__', '.pyc',
                 'node_modules', '.DS_Store', '.vscode', '.idea',
                 'venv', 'env', '.env', 'dist', 'build'
             ]
-            
+
         def should_ignore(path: Path) -> bool:
             """Check if path should be ignored."""
             path_str = str(path)
             path_name = path.name
-            
+
             for pattern in ignore_patterns:
                 if pattern in path_str or pattern in path_name:
                     return True
             return False
-            
+
         def build_tree(path: Path, prefix: str = "", depth: int = 0) -> List[str]:
             """Build tree structure recursively."""
             if depth > max_depth or should_ignore(path):
                 return []
-                
+
             lines = []
             if depth == 0:
                 lines.append(f"{path.name}/")
-            
+
             try:
                 items = sorted(path.iterdir(), key=lambda x: (x.is_file(), x.name.lower()))
-                
+
                 for i, item in enumerate(items):
                     if should_ignore(item):
                         continue
-                        
+
                     is_last = i == len(items) - 1
                     current_prefix = "└── " if is_last else "├── "
                     next_prefix = "    " if is_last else "│   "
-                    
+
                     if item.is_dir():
                         lines.append(f"{prefix}{current_prefix}{item.name}/")
                         lines.extend(build_tree(item, prefix + next_prefix, depth + 1))
@@ -79,18 +118,18 @@ def get_project_structure(project_root: str = None, max_depth: int = 5, ignore_p
                         size = item.stat().st_size
                         size_str = format_file_size(size)
                         lines.append(f"{prefix}{current_prefix}{item.name} ({size_str})")
-                        
+
             except PermissionError:
                 lines.append(f"{prefix}└── [Permission Denied]")
-                
+
             return lines
-            
+
         tree_lines = build_tree(base_path)
         result = f"Project structure for: {base_path}\n{'='*50}\n"
         result += "\n".join(tree_lines)
-        
+
         return result
-        
+
     except Exception as e:
         return f"Error analyzing project structure: {str(e)}"
 
@@ -98,37 +137,34 @@ def get_project_structure(project_root: str = None, max_depth: int = 5, ignore_p
 def analyze_project_languages(project_root: str = None, ignore_patterns: List[str] = None) -> str:
     """
     Analyze programming languages and file types in the project.
-    
+
     Args:
         project_root: Project root directory
         ignore_patterns: Patterns to ignore
-        
+
     Returns:
         String with language analysis
     """
     try:
-        if project_root:
-            base_path = Path(project_root)
-        else:
-            base_path = Path.cwd()
-            
+        base_path = resolve_project_path(project_root or ".", None)
+
         if not base_path.exists():
             return f"Error: Directory '{base_path}' does not exist"
-            
+
         # Default ignore patterns
         if ignore_patterns is None:
             ignore_patterns = [
-                '.git', '__pycache__', 'node_modules', '.DS_Store', 
+                '.git', '__pycache__', 'node_modules', '.DS_Store',
                 'venv', 'env', 'dist', 'build'
             ]
-            
+
         def should_ignore(path: Path) -> bool:
             path_str = str(path)
             for pattern in ignore_patterns:
                 if pattern in path_str:
                     return True
             return False
-            
+
         # Language mapping
         language_map = {
             '.py': 'Python',
@@ -166,57 +202,57 @@ def analyze_project_languages(project_root: str = None, ignore_patterns: List[st
             '.xml': 'XML',
             '.vue': 'Vue.js'
         }
-        
+
         file_stats = defaultdict(lambda: {'count': 0, 'size': 0, 'files': []})
         total_files = 0
         total_size = 0
-        
+
         for file_path in base_path.rglob('*'):
             if not file_path.is_file() or should_ignore(file_path):
                 continue
-                
+
             extension = file_path.suffix.lower()
             file_size = file_path.stat().st_size
-            
+
             # Special case for files without extension
             if not extension and file_path.name.lower() in ['dockerfile', 'makefile', 'readme']:
                 extension = f'.{file_path.name.lower()}'
-                
+
             language = language_map.get(extension, f'Other ({extension})' if extension else 'No Extension')
-            
+
             file_stats[language]['count'] += 1
             file_stats[language]['size'] += file_size
             file_stats[language]['files'].append(str(file_path.relative_to(base_path)))
-            
+
             total_files += 1
             total_size += file_size
-            
+
         if not file_stats:
             return f"No files found in project '{base_path}'"
-            
+
         # Sort by file count
         sorted_languages = sorted(file_stats.items(), key=lambda x: x[1]['count'], reverse=True)
-        
+
         result = f"Project language analysis for: {base_path}\n"
         result += f"Total files: {total_files}, Total size: {format_file_size(total_size)}\n"
         result += "="*50 + "\n\n"
-        
+
         for language, stats in sorted_languages:
             percentage = (stats['count'] / total_files) * 100
             size_str = format_file_size(stats['size'])
             result += f"{language}:\n"
             result += f"  Files: {stats['count']} ({percentage:.1f}%)\n"
             result += f"  Size: {size_str}\n"
-            
+
             # Show some example files (up to 5)
             example_files = stats['files'][:5]
             result += f"  Examples: {', '.join(example_files)}"
             if len(stats['files']) > 5:
                 result += f" (and {len(stats['files']) - 5} more)"
             result += "\n\n"
-            
+
         return result
-        
+
     except Exception as e:
         return f"Error analyzing project languages: {str(e)}"
 
@@ -224,22 +260,19 @@ def analyze_project_languages(project_root: str = None, ignore_patterns: List[st
 def get_important_files(project_root: str = None) -> str:
     """
     Identify and analyze important project files (README, config files, etc.).
-    
+
     Args:
         project_root: Project root directory
-        
+
     Returns:
         String with important files analysis
     """
     try:
-        if project_root:
-            base_path = Path(project_root)
-        else:
-            base_path = Path.cwd()
-            
+        base_path = resolve_project_path(project_root or ".", None)
+
         if not base_path.exists():
             return f"Error: Directory '{base_path}' does not exist"
-            
+
         important_patterns = {
             'Documentation': ['readme*', 'changelog*', 'license*', 'authors*', 'contributors*'],
             'Configuration': ['*.json', '*.yml', '*.yaml', '*.toml', '*.ini', '*.cfg', '.env*'],
@@ -247,9 +280,9 @@ def get_important_files(project_root: str = None) -> str:
             'Version Control': ['.gitignore', '.gitattributes'],
             'CI/CD': ['.github/**/*', '.gitlab-ci.yml', 'jenkinsfile*', '*.yml']
         }
-        
+
         found_files = defaultdict(list)
-        
+
         for category, patterns in important_patterns.items():
             for pattern in patterns:
                 for file_path in base_path.glob(pattern):
@@ -261,12 +294,12 @@ def get_important_files(project_root: str = None) -> str:
                             'size': file_size,
                             'full_path': file_path
                         })
-                        
+
         if not found_files:
             return f"No important files found in project '{base_path}'"
-            
+
         result = f"Important files in project: {base_path}\n{'='*50}\n\n"
-        
+
         for category, files in found_files.items():
             if files:
                 result += f"{category}:\n"
@@ -274,9 +307,9 @@ def get_important_files(project_root: str = None) -> str:
                     size_str = format_file_size(file_info['size'])
                     result += f"  - {file_info['path']} ({size_str})\n"
                 result += "\n"
-                
+
         return result
-        
+
     except Exception as e:
         return f"Error analyzing important files: {str(e)}"
 
@@ -285,38 +318,35 @@ def format_file_size(size_bytes: int) -> str:
     """Format file size in human readable format."""
     if size_bytes == 0:
         return "0 B"
-    
+
     size_names = ["B", "KB", "MB", "GB"]
     i = 0
     size = float(size_bytes)
-    
+
     while size >= 1024.0 and i < len(size_names) - 1:
         size /= 1024.0
         i += 1
-        
+
     return f"{size:.1f} {size_names[i]}"
 
 
 def get_project_summary(project_root: str = None) -> str:
     """
     Get a comprehensive project summary combining structure, languages, and important files.
-    
+
     Args:
         project_root: Project root directory
-        
+
     Returns:
         String with complete project summary
     """
     try:
-        if project_root:
-            base_path = Path(project_root)
-        else:
-            base_path = Path.cwd()
-            
+        base_path = resolve_project_path(project_root or ".", None)
+
         result = f"COMPREHENSIVE PROJECT SUMMARY\n"
         result += f"Project: {base_path}\n"
         result += "="*60 + "\n\n"
-        
+
         # 1. Language Analysis
         result += "1. LANGUAGE ANALYSIS:\n"
         result += "-" * 30 + "\n"
@@ -336,7 +366,7 @@ def get_project_summary(project_root: str = None) -> str:
         else:
             result += lang_analysis + "\n"
         result += "\n"
-        
+
         # 2. Important Files
         result += "2. IMPORTANT FILES:\n"
         result += "-" * 30 + "\n"
@@ -354,7 +384,7 @@ def get_project_summary(project_root: str = None) -> str:
         else:
             result += important_files + "\n"
         result += "\n"
-        
+
         # 3. Directory Structure (simplified)
         result += "3. PROJECT STRUCTURE:\n"
         result += "-" * 30 + "\n"
@@ -371,8 +401,8 @@ def get_project_summary(project_root: str = None) -> str:
                     result += line + "\n"
         else:
             result += structure + "\n"
-            
+
         return result
-        
+
     except Exception as e:
         return f"Error creating project summary: {str(e)}"
