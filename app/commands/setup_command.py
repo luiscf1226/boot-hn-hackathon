@@ -30,7 +30,7 @@ class SetupCommand(BaseCommand):
             if not api_key or api_key == "your_gemini_api_key_here" or len(api_key.strip()) < 20:
                 return {
                     "prompt": "api_key",
-                    "message": "🔑 Gemini API Key Required",
+                    "message": "Gemini API Key Required",
                     "instructions": [
                         "Get your free API key from: https://makersuite.google.com/app/apikey",
                         "Copy the API key and paste it below",
@@ -67,7 +67,7 @@ class SetupCommand(BaseCommand):
             success = user.update_configuration(self.db, api_key, model)
             if success:
                 return CommandResult(True,
-                    f"✅ Setup completed! Using model: {model}",
+                    f"Setup completed! Using model: {model}",
                     {"model": model, "api_key_set": True}
                 ).to_dict()
             else:
@@ -86,7 +86,7 @@ class SetupCommand(BaseCommand):
             if not validate_gemini_api_key(api_key):
                 return {
                     "prompt": "api_key",
-                    "message": "❌ Invalid API Key Format",
+                    "message": "Invalid API Key Format",
                     "instructions": [
                         "Gemini API keys should start with 'AIza' and be around 39 characters long",
                         "Please check your key and try again",
@@ -103,12 +103,12 @@ class SetupCommand(BaseCommand):
                 new_settings = get_settings()
 
                 return CommandResult(True,
-                    "✅ API key saved successfully! Now let's select your model...",
+                    "API key saved successfully! Now let's select your model...",
                     {"api_key_saved": True, "proceed_to_model": True}
                 ).to_dict()
             else:
                 return CommandResult(False,
-                    "❌ Failed to save API key to .env file. Please check file permissions."
+                    "Failed to save API key to .env file. Please check file permissions."
                 ).to_dict()
 
         except Exception as e:
@@ -123,12 +123,12 @@ Setup Command Help
 
 The 'setup' command configures your AI model and API key.
 
-🔑 API Key Setup:
+API Key Setup:
      * You'll be prompted to enter your Gemini API key if not set
      * Get your free key from: https://makersuite.google.com/app/apikey
      * The key will be saved securely to your .env file
 
-🤖 Available Models:
+Available Models:
      * {models_list}
 
 Usage: Just type '/setup' and follow the prompts!

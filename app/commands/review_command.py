@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.commands.base import BaseCommand, CommandResult
 from app.models.user import User
 from app.services.agent import Agent
+from app.commands.prompts import load_prompt, format_prompt
 from app.functions.git_operations import (
     check_git_repository,
     get_all_changes_diff,
@@ -56,52 +57,12 @@ class ReviewCommand(BaseCommand):
             except Exception as e:
                 return CommandResult(False, f"Failed to initialize AI agent: {str(e)}").to_dict()
 
-            # Create AI prompt for code review
-            system_prompt = """You are a senior software engineer performing a code review. Analyze the git diff provided and provide constructive feedback.
-
-Focus on:
-1. **Code Quality**: Logic errors, edge cases, performance issues
-2. **Security**: Potential vulnerabilities, input validation, authentication issues
-3. **Best Practices**: Code style, naming conventions, architecture patterns
-4. **Maintainability**: Code readability, documentation, complexity
-5. **Testing**: Missing test cases, test coverage
-6. **Dependencies**: New dependencies, version compatibility
-
-Provide your review as a structured list of suggestions:
-
-## Code Review Findings
-
-### Good Points
-- List positive aspects of the changes
-
-### Issues Found
-- **[SEVERITY]** Description of issue
-- **Location**: file:line
-- **Suggestion**: How to fix
-
-### Improvements
-- Suggestions for enhancement
-- Performance optimizations
-- Better patterns to consider
-
-### Testing Recommendations
-- Missing test scenarios
-- Edge cases to consider
-
-Be constructive and specific. Focus on actionable feedback."""
-
-            user_message = f"""Please review these code changes:
-
-GIT STATUS:
-{git_status}
-
-CODE CHANGES:
-{changes_diff}
-
-RECENT COMMITS (for context):
-{recent_commits}
-
-Provide a thorough code review with specific, actionable feedback."""
+            # Load AI prompts from files
+            system_prompt = load_prompt("review_system")
+            user_message = format_prompt("review_user",
+                                       git_status=git_status,
+                                       changes_diff=changes_diff,
+                                       recent_commits=recent_commits)
 
             # Send to AI
             try:

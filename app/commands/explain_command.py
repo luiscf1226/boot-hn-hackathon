@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.commands.base import BaseCommand, CommandResult
 from app.models.user import User
 from app.services.agent import Agent
+from app.commands.prompts import load_prompt, format_prompt
 
 
 class ExplainCommand(BaseCommand):
@@ -64,56 +65,9 @@ class ExplainCommand(BaseCommand):
             except Exception as e:
                 return CommandResult(False, f"Failed to initialize AI agent: {str(e)}").to_dict()
 
-            # Create comprehensive system prompt for code explanation
-            system_prompt = """You are an expert software engineer and code mentor. Your job is to analyze and explain code in a clear, educational manner.
-
-When explaining code, provide:
-
-## 📋 Code Overview
-- Brief summary of what this code does
-- Primary purpose and functionality
-- Programming language and key technologies used
-
-## 🏗️ Structure Analysis
-- Main components, classes, functions, or modules
-- How different parts work together
-- Data flow and control flow
-
-## 🔍 Line-by-Line Breakdown
-- Explain complex or important sections
-- Highlight key algorithms or logic
-- Point out design patterns used
-
-## 💡 Key Concepts
-- Important programming concepts demonstrated
-- Best practices shown (or missing)
-- Common patterns or techniques used
-
-## 🚀 How It Works
-- Step-by-step execution flow
-- Input and output behavior
-- Side effects or dependencies
-
-## ⚠️ Potential Issues
-- Code smells or anti-patterns
-- Security considerations
-- Performance implications
-- Areas for improvement
-
-## 🎯 Learning Points
-- What beginners can learn from this code
-- Advanced concepts demonstrated
-- Takeaways for better coding
-
-Be thorough but accessible. Use examples and analogies when helpful. Focus on education and understanding."""
-
-            user_message = f"""Please analyze and explain this code:
-
-```
-{code}
-```
-
-Provide a comprehensive explanation that helps understand what this code does, how it works, and what can be learned from it."""
+            # Load AI prompts from files
+            system_prompt = load_prompt("explain_code_system")
+            user_message = format_prompt("explain_code_user", code=code)
 
             # Send to AI
             try:
@@ -202,65 +156,14 @@ Provide a comprehensive explanation that helps understand what this code does, h
             except Exception as e:
                 return CommandResult(False, f"Failed to initialize AI agent: {str(e)}").to_dict()
 
-            # Create file-specific system prompt
-            system_prompt = """You are an expert software engineer analyzing a source code file. Provide a comprehensive analysis and explanation.
-
-Structure your analysis as follows:
-
-## 📁 File Overview
-- File name, type, and purpose
-- Programming language and framework/library used
-- Role in the larger project/system
-
-## 🏗️ Architecture & Structure
-- Main components (classes, functions, modules)
-- Imports and dependencies
-- Overall organization and patterns
-
-## 🔍 Detailed Analysis
-- Key functions/methods and their purposes
-- Important algorithms or logic
-- Data structures and their usage
-- Design patterns implemented
-
-## 🔄 Flow & Interactions
-- How the code executes
-- Entry points and main workflows
-- Interactions with external systems/files
-- Data processing pipeline
-
-## 💡 Code Quality & Practices
-- Good practices demonstrated
-- Code style and organization
-- Error handling approach
-- Documentation quality
-
-## ⚠️ Areas of Interest
-- Complex or clever implementations
-- Potential issues or improvements
-- Security considerations
-- Performance implications
-
-## 🎯 Key Takeaways
-- What this file teaches about good coding
-- Concepts that can be applied elsewhere
-- Learning opportunities for developers
-
-Be specific and reference actual code snippets when helpful."""
-
-            user_message = f"""Please analyze this file:
-
-**File:** {file_path}
-**Name:** {file_name}
-**Extension:** {file_extension}
-**Size:** {len(file_content)} characters
-
-**Content:**
-```
-{file_content}
-```
-
-Provide a thorough analysis explaining what this file does, how it's structured, and what can be learned from it."""
+            # Load AI prompts from files
+            system_prompt = load_prompt("explain_file_system")
+            user_message = format_prompt("explain_file_user", 
+                                       file_path=file_path,
+                                       file_name=file_name,
+                                       file_extension=file_extension,
+                                       file_size=len(file_content),
+                                       file_content=file_content)
 
             # Send to AI
             try:
@@ -323,65 +226,13 @@ Provide a thorough analysis explaining what this file does, how it's structured,
             except Exception as e:
                 return CommandResult(False, f"Failed to initialize AI agent: {str(e)}").to_dict()
 
-            # Create directory analysis system prompt
-            system_prompt = """You are an expert software architect analyzing a project directory structure. Provide insights about the project organization, architecture, and purpose.
-
-Structure your analysis as follows:
-
-## Project Overview
-- Project name and apparent purpose
-- Technology stack and framework used
-- Project type (web app, library, CLI tool, etc.)
-
-## Architecture Analysis
-- Directory structure and organization patterns
-- Separation of concerns
-- Architectural patterns (MVC, microservices, etc.)
-- Configuration and setup files
-
-## Key Components
-- Main application directories and their purposes
-- Important configuration files
-- Build and deployment files
-- Documentation and testing structure
-
-## Code Organization
-- How code is structured and modularized
-- Naming conventions and patterns
-- Dependencies and external libraries
-- Development vs production concerns
-
-## Best Practices Observed
-- Good organizational patterns
-- Standard conventions followed
-- Professional development practices
-- Documentation quality
-
-## Potential Issues
-- Missing standard files or directories
-- Organizational concerns
-- Suggestions for improvement
-- Standard patterns not followed
-
-## Development Insights
-- What this project structure teaches
-- How developers can learn from this organization
-- Patterns to adopt or avoid
-
-Be specific about what you observe in the directory structure."""
-
-            user_message = f"""Please analyze this project directory:
-
-**Current Directory:** {current_dir}
-**Project Name:** {os.path.basename(current_dir)}
-
-**Directory Structure:**
-{dir_structure}
-
-**Key Files Found:**
-{key_files}
-
-Analyze the project structure, identify the technology stack, architectural patterns, and provide insights about how this project is organized."""
+            # Load AI prompts from files
+            system_prompt = load_prompt("explain_directory_system")
+            user_message = format_prompt("explain_directory_user",
+                                       current_dir=current_dir,
+                                       project_name=os.path.basename(current_dir),
+                                       dir_structure=dir_structure,
+                                       key_files=key_files)
 
             # Send to AI
             try:

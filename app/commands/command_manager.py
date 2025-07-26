@@ -14,8 +14,8 @@ from app.commands.clean_command import CleanCommand
 from app.commands.commit_command import CommitCommand
 from app.commands.review_command import ReviewCommand
 from app.commands.explain_command import ExplainCommand
+from app.commands.unknown_command import UnknownCommand
 from app.core.database import get_db, create_tables
-
 
 class CommandManager:
     """Manages command execution and routing."""
@@ -47,6 +47,9 @@ class CommandManager:
 
         # Register explain command
         self._commands[AgentCommand.EXPLAIN] = ExplainCommand
+
+        # Register unknown command
+        self._commands[AgentCommand.UNKNOWN_COMMAND] = UnknownCommand
 
 
     def _ensure_db_initialized(self):

@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.commands.base import BaseCommand, CommandResult
 from app.models.user import User
 from app.services.agent import Agent
+from app.commands.prompts import load_prompt, format_prompt
 from app.functions.git_operations import (
     check_git_repository,
     get_staged_files,
@@ -68,37 +69,12 @@ class CommitCommand(BaseCommand):
             except Exception as e:
                 return CommandResult(False, f"Failed to initialize AI agent: {str(e)}").to_dict()
 
-            # Create AI prompt for commit message generation
-            system_prompt = """You are an expert at writing git commit messages. Based on the git diff provided, generate a clear, concise commit message that follows best practices:
-
-1. Use imperative mood (e.g., "Add feature" not "Added feature")
-2. Keep the first line under 50 characters
-3. Capitalize the first letter
-4. No period at the end of the first line
-5. If needed, add a blank line and detailed explanation
-
-Focus on WHAT changed and WHY, not HOW. Be specific but concise.
-
-Examples of good commit messages:
-- "Add user authentication with JWT tokens"
-- "Fix memory leak in image processing"
-- "Update README with installation instructions"
-- "Refactor database connection handling"
-
-Return ONLY the commit message, nothing else."""
-
-            user_message = f"""Please generate a commit message for these changes:
-
-STAGED FILES:
-{staged_files}
-
-GIT DIFF:
-{staged_diff}
-
-RECENT COMMITS (for context):
-{recent_commits}
-
-Generate a professional commit message that clearly describes these changes."""
+            # Load AI prompts from files
+            system_prompt = load_prompt("commit_system")
+            user_message = format_prompt("commit_user", 
+                                       staged_files=staged_files,
+                                       staged_diff=staged_diff,
+                                       recent_commits=recent_commits)
 
             # Send to AI
             try:

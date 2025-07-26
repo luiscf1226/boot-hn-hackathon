@@ -18,6 +18,7 @@ class AgentCommand(Enum):
     EXPLAIN = "explain"
     COMMIT = "commit"
     CLEAN = "clean"
+    UNKNOWN_COMMAND = "unknown"
 
 
 class CommandInfo:
@@ -66,6 +67,11 @@ COMMAND_INFO: Dict[AgentCommand, CommandInfo] = {
         AgentCommand.CLEAN,
         "Delete SQLite database and clean up temporary files",
         "Maintenance"
+    ),
+    AgentCommand.UNKNOWN_COMMAND: CommandInfo(
+        AgentCommand.UNKNOWN_COMMAND,
+        "Handle unrecognized input with AI assistance",
+        "AI Assistant"
     ),
 }
 
