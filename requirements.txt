@@ -3,10 +3,9 @@ fastapi==0.104.1
 uvicorn[standard]==0.24.0
 python-multipart==0.0.6
 
-# Database
+# Database - SQLite is built into Python, but we need these
 sqlalchemy==2.0.23
 alembic==1.13.0
-sqlite-utils==3.35.2
 
 # Authentication & Security
 python-jose[cryptography]==3.3.0
@@ -20,7 +19,7 @@ python-dotenv==1.0.0
 httpx==0.25.2
 aiohttp==3.9.1
 
-# Textual UI
+# Textual UI - make sure we have the right version
 textual==0.45.1
 rich==13.7.0
 
@@ -31,16 +30,12 @@ pydantic-settings==2.1.0
 # Date and time utilities
 python-dateutil==2.8.2
 
-# Async utilities
-asyncio-mqtt==0.16.1
-
 # Logging
 structlog==23.2.0
 
 # Testing (optional, for development)
 pytest==7.4.3
 pytest-asyncio==0.21.1
-httpx==0.25.2
 
 # Code formatting and linting (optional, for development)
 black==23.11.0

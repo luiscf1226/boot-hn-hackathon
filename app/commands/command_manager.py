@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.commands.command_enum import AgentCommand
 from app.commands.setup_command import SetupCommand
-from app.core.database import get_db
+from app.core.database import get_db, create_tables
 
 
 class CommandManager:
@@ -16,6 +16,7 @@ class CommandManager:
 
     def __init__(self):
         self._commands = {}
+        self._db_initialized = False
         self._register_commands()
 
     def _register_commands(self):
@@ -27,6 +28,17 @@ class CommandManager:
         # self._commands[AgentCommand.MODELS] = ModelsCommand
         # self._commands[AgentCommand.INIT] = InitCommand
         # etc.
+
+    def _ensure_db_initialized(self):
+        """Ensure database tables are created."""
+        if not self._db_initialized:
+            try:
+                create_tables()
+                self._db_initialized = True
+            except Exception as e:
+                print(f"Warning: Could not initialize database: {e}")
+                # Continue anyway - maybe the database is already initialized
+                self._db_initialized = True
 
     async def execute_command(self, command_name: str, *args, **kwargs) -> Dict[str, Any]:
         """Execute a command by name."""
@@ -52,6 +64,9 @@ class CommandManager:
                     "message": f"Command '{command_name}' is not implemented yet",
                     "data": {}
                 }
+
+            # Initialize database if needed
+            self._ensure_db_initialized()
 
             # Get database session
             db_gen = get_db()

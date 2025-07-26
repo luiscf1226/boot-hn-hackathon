@@ -1,267 +1,183 @@
 """
-Command screen for the AI Coding Agent.
-Handles command input and execution within the UI.
+Command screen for the Textual UI.
 """
 
 import asyncio
+from typing import Optional
+from textual import on
 from textual.app import ComposeResult
-from textual.containers import Container, Vertical, Horizontal
-from textual.widgets import Header, Footer, Input, Static, RichLog
+from textual.containers import Container
 from textual.screen import Screen
-from textual.binding import Binding
-from rich.text import Text
-from rich.panel import Panel
+from textual.widgets import Header, Footer, Input, RichLog, Static
 
 from app.commands.command_manager import command_manager
-from app.commands.command_enum import get_all_commands
 
 
 class CommandScreen(Screen):
     """Screen for command input and execution."""
 
-    CSS = """
-    CommandScreen {
-        background: #0d1117;
-    }
-
-    #command-history {
-        height: 1fr;
-        margin: 1 2;
-        border: solid #30363d;
-        background: #161b22;
-    }
-
-    #command-input-container {
-        height: 3;
-        margin: 0 2 1 2;
-    }
-
-    #command-input {
-        background: #21262d;
-        color: #f0f6fc;
-        border: solid #30363d;
-    }
-
-    #status-bar {
-        height: 3;
-        margin: 0 2;
-        background: #161b22;
-        border: solid #30363d;
-    }
-
-    Header {
-        background: #161b22;
-    }
-
-    Footer {
-        background: #21262d;
-    }
-    """
-
     BINDINGS = [
-        Binding("ctrl+c", "quit", "Quit"),
-        Binding("escape", "back", "Back to Welcome"),
-        Binding("ctrl+l", "clear", "Clear History"),
+        ("escape", "app.pop_screen", "Back"),
+        ("ctrl+c", "app.quit", "Quit"),
     ]
 
     def __init__(self):
         super().__init__()
-        self.command_history = []
+        self._input_future: Optional[asyncio.Future] = None
 
     def compose(self) -> ComposeResult:
-        """Compose the command screen layout."""
-        yield Header(show_clock=True)
+        """Create the UI layout."""
+        yield Header()
 
         with Container():
-            # Command history display
+            yield Static("🤖 AI Coding Agent - Command Interface\nType commands starting with '/' (e.g., /setup)", id="info")
             yield RichLog(
+                id="command-history",
                 highlight=True,
                 markup=True,
-                id="command-history"
+                auto_scroll=True,
+                max_lines=1000
             )
-
-            # Status bar
-            yield Static(
-                Panel(
-                    Text("Ready for commands. Type /help for available commands, /setup to configure agent.",
-                         style="dim"),
-                    title="[bold blue]Status[/bold blue]",
-                    border_style="blue"
-                ),
-                id="status-bar"
+            yield Input(
+                placeholder="Enter a command (e.g., /setup)...",
+                id="command-input"
             )
-
-            # Command input
-            with Container(id="command-input-container"):
-                yield Input(
-                    placeholder="Type a command (e.g., /setup, /help)...",
-                    id="command-input"
-                )
+            yield Static("", id="status")
 
         yield Footer()
 
     def on_mount(self) -> None:
-        """Called when screen is mounted."""
+        """Focus the input when screen mounts."""
         self.query_one("#command-input").focus()
-
-        # Welcome message
         history = self.query_one("#command-history")
-        history.write(Panel(
-            Text.from_markup(
-                "[bold cyan]🤖 Boot-hn AI Coding Agent - Command Interface[/bold cyan]\n\n"
-                "[white]Available commands:[/white]\n"
-                "[cyan]• /setup[/cyan] - Configure Gemini API and model\n"
-                "[cyan]• /models[/cyan] - Display database models\n"
-                "[cyan]• /init[/cyan] - Initialize project documentation\n"
-                "[cyan]• /review-changes[/cyan] - Review git changes\n"
-                "[cyan]• /explain[/cyan] - Explain code\n"
-                "[cyan]• /commit[/cyan] - Generate commit message\n"
-                "[cyan]• /clean[/cyan] - Clean database\n"
-                "[cyan]• /help[/cyan] - Show detailed help\n"
-                "[cyan]• /exit[/cyan] - Exit agent\n\n"
-                "[dim]Type a command and press Enter to execute[/dim]"
-            ),
-            title="[bold green]Welcome[/bold green]",
-            border_style="green"
-        ))
+        history.write("Welcome! Type [bold]/setup[/bold] to configure your AI model.")
+
+    async def _prompt_user(self, message: str) -> str:
+        """Prompt user for input and wait for response."""
+        history = self.query_one("#command-history")
+        input_widget = self.query_one("#command-input")
+
+        # Display the prompt
+        history.write(f"\n[yellow]? {message}[/yellow]")
+
+        # Set placeholder to show what we're asking for
+        input_widget.placeholder = message
+        input_widget.focus()
+
+        # Create a future to wait for user input
+        self._input_future = asyncio.get_event_loop().create_future()
+
+        # Wait for user input with timeout
+        try:
+            result = await asyncio.wait_for(self._input_future, timeout=300.0)  # 5 minute timeout
+            return result
+        except asyncio.TimeoutError:
+            history.write("[red]Input timeout. Please try again.[/red]")
+            return ""
+        except Exception as e:
+            history.write(f"[red]Input error: {e}[/red]")
+            return ""
+        finally:
+            if self._input_future and not self._input_future.done():
+                self._input_future.cancel()
+            self._input_future = None
+            input_widget.placeholder = "Enter a command (e.g., /setup)..."
 
     async def on_input_submitted(self, event: Input.Submitted) -> None:
         """Handle command input submission."""
-        command_input = event.input
-        command_text = command_input.value.strip()
+        try:
+            history = self.query_one("#command-history")
+            command_input = event.input
+            command_text = command_input.value.strip()
 
-        if not command_text:
-            return
+            # If we're waiting for a prompt response
+            if self._input_future is not None and not self._input_future.done():
+                try:
+                    self._input_future.set_result(command_text)
+                except Exception:
+                    # Future might have been cancelled or already set
+                    pass
+                command_input.value = ""
+                return
 
-        # Clear input
-        command_input.value = ""
+            if not command_text:
+                return
 
-        # Add command to history display
-        history = self.query_one("#command-history")
-        history.write(f"\n[bold yellow]$ {command_text}[/bold yellow]")
+            # Clear input
+            command_input.value = ""
+            history.write(f"\n[bold yellow]$ {command_text}[/bold yellow]")
 
-        # Process command
-        await self._process_command(command_text, history)
+            # Process command
+            await self._process_command(command_text, history)
+
+        except Exception as e:
+            try:
+                history = self.query_one("#command-history")
+                history.write(f"[red]Error: {e}[/red]")
+            except:
+                pass
 
     async def _process_command(self, command_text: str, history: RichLog) -> None:
-        """Process a command and display results."""
-        # Handle built-in UI commands
-        if command_text.lower() in ["/exit", "/quit"]:
-            self.app.exit()
-            return
-
-        if command_text.lower() == "/help":
-            self._show_help(history)
-            return
-
-        if command_text.lower() == "/clear":
-            history.clear()
-            return
-
-        # Parse command (remove leading slash)
-        if command_text.startswith("/"):
-            command_name = command_text[1:].lower().strip()
-        else:
-            history.write("[red]❌ Commands must start with '/' (e.g., /setup)[/red]")
-            return
-
-        # Check if command is available
-        if not command_manager.is_command_available(command_name):
-            available_commands = command_manager.get_available_commands()
-            history.write(f"[red]❌ Unknown command: {command_name}[/red]")
-            history.write(f"[dim]Available: {', '.join(available_commands)}[/dim]")
-            return
-
-        # Update status
-        self._update_status(f"Executing command: {command_name}")
-
+        """Process a command."""
         try:
-            # Execute command
-            history.write(f"[blue]🚀 Executing {command_name}...[/blue]")
+            if not command_text.startswith("/"):
+                history.write("[red]Commands must start with '/' (e.g., /setup)[/red]")
+                return
 
-            # For setup command, we need to handle it specially since it has interactive prompts
+            command_name = command_text[1:].strip()
+
             if command_name == "setup":
                 await self._handle_setup_command(history)
             else:
-                # For other commands, execute normally
-                result = await command_manager.execute_command(command_name)
-                self._display_command_result(result, history)
+                history.write(f"[red]Unknown command: {command_name}[/red]")
+                history.write("Available commands: [bold]setup[/bold]")
 
         except Exception as e:
-            history.write(f"[red]❌ Error executing command: {str(e)}[/red]")
-        finally:
-            self._update_status("Ready for commands")
+            history.write(f"[red]Error processing command: {e}[/red]")
 
     async def _handle_setup_command(self, history: RichLog) -> None:
-        """Handle setup command with special UI consideration."""
-        history.write("[yellow]⚠️  Setup command requires interactive input.[/yellow]")
-        history.write("[cyan]🔄 Switching to setup mode...[/cyan]")
+        """Handle the setup command with simplified model selection."""
+        try:
+            # Start setup process
+            result = await command_manager.execute_command("setup")
 
-        # Execute setup command
-        result = await command_manager.execute_command("setup")
-        self._display_command_result(result, history)
+            if not result.get("success"):
+                if "prompt" in result and result["prompt"] == "model":
+                    # Show available models
+                    history.write(f"\n[green]{result['message']}[/green]")
+                    models = result.get("available_models", [])
+                    for i, model in enumerate(models, 1):
+                        current = " [dim](current)[/dim]" if model == result.get("current_model") else ""
+                        history.write(f"  {i}. {model}{current}")
 
-    def _display_command_result(self, result: dict, history: RichLog) -> None:
-        """Display command execution result."""
-        if result.get("success"):
-            history.write(f"[green]✅ {result.get('message', 'Command completed successfully')}[/green]")
+                    # Ask user to select model
+                    model_choice = await self._prompt_user("Enter model number or name:")
 
-            # Display additional data if available
-            if result.get("data"):
-                data = result["data"]
-                if data.get("model"):
-                    history.write(f"[cyan]🤖 Model: {data['model']}[/cyan]")
-                if data.get("api_key_set"):
-                    history.write("[cyan]🔑 API Key: Configured[/cyan]")
-        else:
-            history.write(f"[red]❌ {result.get('message', 'Command failed')}[/red]")
+                    # Parse user choice
+                    selected_model = None
+                    if model_choice.isdigit():
+                        idx = int(model_choice) - 1
+                        if 0 <= idx < len(models):
+                            selected_model = models[idx]
+                    else:
+                        if model_choice in models:
+                            selected_model = model_choice
 
-    def _show_help(self, history: RichLog) -> None:
-        """Show help information."""
-        commands = get_all_commands()
+                    if not selected_model:
+                        history.write("[red]Invalid selection. Please try again.[/red]")
+                        return
 
-        help_text = Text()
-        help_text.append("📚 Available Commands:\n\n", style="bold blue")
+                    # Execute setup with selected model
+                    final_result = await command_manager.execute_command("setup", model=selected_model)
 
-        current_category = None
-        for cmd_info in commands:
-            if cmd_info.category != current_category:
-                current_category = cmd_info.category
-                help_text.append(f"\n{current_category}:\n", style="bold magenta")
+                    if final_result.get("success"):
+                        history.write(f"[green]{final_result['message']}[/green]")
+                    else:
+                        history.write(f"[red]{final_result['message']}[/red]")
+                else:
+                    history.write(f"[red]{result['message']}[/red]")
+            else:
+                history.write(f"[green]{result['message']}[/green]")
 
-            help_text.append(f"  /{cmd_info.command.value}", style="bold cyan")
-            help_text.append(f" - {cmd_info.description}\n", style="white")
-
-        help_text.append("\n💡 Tips:\n", style="bold yellow")
-        help_text.append("• Commands must start with '/'\n", style="dim")
-        help_text.append("• Press Ctrl+L to clear history\n", style="dim")
-        help_text.append("• Press Escape to go back to welcome screen\n", style="dim")
-
-        history.write(Panel(
-            help_text,
-            title="[bold blue]Help[/bold blue]",
-            border_style="blue"
-        ))
-
-    def _update_status(self, message: str) -> None:
-        """Update the status bar."""
-        status_widget = self.query_one("#status-bar")
-        status_widget.update(Panel(
-            Text(message, style="dim"),
-            title="[bold blue]Status[/bold blue]",
-            border_style="blue"
-        ))
-
-    def action_back(self) -> None:
-        """Go back to welcome screen."""
-        self.app.pop_screen()
-
-    def action_clear(self) -> None:
-        """Clear command history."""
-        history = self.query_one("#command-history")
-        history.clear()
-        self._update_status("History cleared")
-
-    def action_quit(self) -> None:
-        """Quit the application."""
-        self.app.exit()
+        except Exception as e:
+            history.write(f"[red]Setup failed: {e}[/red]")
