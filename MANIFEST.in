@@ -1,0 +1,51 @@
+# Include the README
+include README.md
+
+# Include the license file (if it exists)
+include LICENSE*
+
+# Include configuration files
+include requirements.txt
+include pyproject.toml
+
+# Include environment example
+include env.example
+
+# Include all prompt files
+recursive-include app/commands/prompts *.txt
+
+# Include all package data
+recursive-include app *.py
+
+# Exclude development/build files
+exclude *.pyc
+exclude .DS_Store
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+
+# Exclude database files
+exclude app.db
+exclude *.db
+exclude *.sqlite*
+
+# Exclude environment files
+exclude .env
+exclude .env.*
+
+# Exclude git files
+exclude .git*
+recursive-exclude .git *
+
+# Exclude IDE files
+exclude .vscode
+recursive-exclude .vscode *
+exclude .idea
+recursive-exclude .idea *
+
+# Exclude build artifacts
+exclude build
+recursive-exclude build *
+exclude dist
+recursive-exclude dist *
+exclude *.egg-info
+recursive-exclude *.egg-info *

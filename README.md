@@ -5,6 +5,21 @@ This project is a Python-based application developed during a hackathon. It appe
 
 ## Installation
 
+### Option 1: Install from PyPI (Recommended)
+
+```bash
+pip install ai-coding-agent
+```
+
+After installation, you can run the application with:
+```bash
+ai-coding-agent
+# or the shorter alias:
+aca
+```
+
+### Option 2: Install from Source
+
 1.  **Clone the repository:**
 
     ```bash
@@ -20,23 +35,42 @@ This project is a Python-based application developed during a hackathon. It appe
     # venv\Scripts\activate  # On Windows
     ```
 
-3.  **Install dependencies:**
+3.  **Install in development mode:**
 
+    ```bash
+    pip install -e .
+    ```
+
+    Or install dependencies directly:
     ```bash
     pip install -r requirements.txt
     ```
 
-4.  **Configure environment variables:**
+### Option 3: Download Binary (Standalone)
 
-    *   Copy the `.env` file (if it exists) and populate the necessary environment variables.
-    *   Alternatively, define the environment variables directly in your system.
-    *   **Important:** Ensure you understand what each variable controls, especially database connection details and API keys.
+Download the latest binary from the releases page and run directly:
 
-5. **Database Migrations (if applicable):**
+```bash
+# Linux/macOS
+chmod +x ai-coding-agent
+./ai-coding-agent
+
+# Windows
+ai-coding-agent.exe
+```
+
+### Configuration
+
+1.  **Environment Setup:**
+    - The application will guide you through initial setup on first run
+    - You'll need a Google Gemini API key for AI functionality
+    - Database tables are created automatically
+
+2.  **Optional Environment File:**
     ```bash
-    alembic upgrade head
+    cp env.example .env
+    # Edit .env with your preferred settings
     ```
-    This step uses Alembic (configured in `alembic.ini`) to apply database migrations, setting up the initial database schema.
 
 ## Usage Examples
 
@@ -137,6 +171,69 @@ hackathon/
 ├── README.md                 # This file
 └── requirements.txt          # List of Python dependencies
 
+```
+
+## Development & Building
+
+### For Developers
+
+#### Setup Development Environment
+```bash
+# Clone and setup
+git clone <repository_url>
+cd hackathon
+make venv
+source venv/bin/activate  # Linux/macOS
+make install-dev
+```
+
+#### Building Packages
+
+**Build wheel for PyPI:**
+```bash
+make build-wheel
+```
+
+**Build standalone binary:**
+```bash
+make build-binary
+```
+
+**Build everything:**
+```bash
+make build-all
+```
+
+#### Testing and Quality
+```bash
+make test          # Run tests
+make lint          # Code linting
+make format        # Format code
+```
+
+#### Publishing
+```bash
+make publish-test  # Upload to TestPyPI
+make publish      # Upload to PyPI
+```
+
+### Manual Build Commands
+
+If you prefer not to use Make:
+
+**Build wheel package:**
+```bash
+python -m build --wheel
+```
+
+**Build binary:**
+```bash
+python build_binary.py
+```
+
+**Install build dependencies:**
+```bash
+pip install build twine pyinstaller
 ```
 
 ## Contributing Guidelines
