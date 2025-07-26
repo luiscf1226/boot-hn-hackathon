@@ -2,7 +2,6 @@
 Welcome screen for the Textual UI.
 """
 
-from typing import Optional
 from textual.app import App, ComposeResult
 from textual.containers import Container, Vertical
 from textual.widgets import Header, Footer, Static, Input, RichLog
@@ -71,7 +70,13 @@ class WelcomeApp(App):
                 ))
 
                 # Command output log
-                yield RichLog(id="output", auto_scroll=True, max_lines=100)
+                yield RichLog(
+                    id="output", 
+                    auto_scroll=True, 
+                    max_lines=100,
+                    highlight=True,
+                    markup=True
+                )
                 
                 # Command input
                 yield Input(placeholder="Type /setup and press Enter", id="input")
