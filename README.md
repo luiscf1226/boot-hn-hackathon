@@ -2,6 +2,14 @@
 
 AI-powered coding assistant with terminal UI for code analysis, commit messages, and project management.
 
+## About This Project
+
+This is a hackathon project for boot.dev!
+
+First of all I want to be honest. I did use AI for the UI with copilot and tab. I had no experience with textual and toml for creating projects, but the project idea, commands and functions were an idea from a boot.dev course!
+
+I'm not sure if I'm gonna win but I'm just happy to represent Honduras and hope at least you found it interesting! 🇭🇳
+
 ## Installation
 
 ### Option 1: Install from GitHub (Recommended)
@@ -24,11 +32,25 @@ ai-coding-agent
 
 ## Usage
 
-Run the application:
+### Running the Application
 ```bash
+# After installation via pip:
 ai-coding-agent
 # or short alias:
 aca
+```
+
+### Running Locally from Clone
+```bash
+# Clone and setup
+git clone https://github.com/luiscf1226/boot-hn-hackathon.git
+cd boot-hn-hackathon
+python3 -m venv venv
+source venv/bin/activate  # Linux/macOS (Windows: venv\Scripts\activate)
+pip install -e .
+
+# Run the application
+ai-coding-agent
 ```
 
 ### Available Commands
@@ -50,6 +72,46 @@ On first run, the app will guide you through setup:
 ```bash
 pip uninstall ai-coding-agent
 ```
+
+## Project Structure
+
+```
+app/
+├── commands/           # Command implementations
+│   ├── prompts/       # AI prompt templates
+│   └── *.py          # Individual command files
+├── core/              # Core functionality
+├── models/            # Database models
+├── ui/                # Textual UI components
+└── cli.py            # Entry point
+```
+
+## Adding New Commands
+
+To add a new command:
+
+1. **Create command file** in `app/commands/`:
+   ```python
+   # app/commands/my_command.py
+   from app.commands.base import BaseCommand
+   
+   class MyCommand(BaseCommand):
+       async def execute(self, *args, **kwargs):
+           return {"success": True, "message": "Command executed!"}
+   ```
+
+2. **Add to command enum** in `app/commands/command_enum.py`:
+   ```python
+   MY_COMMAND = "mycommand"
+   ```
+
+3. **Register in command manager** in `app/commands/command_manager.py`:
+   ```python
+   from app.commands.my_command import MyCommand
+   self._commands[AgentCommand.MY_COMMAND] = MyCommand
+   ```
+
+4. **Add to UI** in `app/ui/components/commands_panel.py` for display
 
 ## Requirements
 
