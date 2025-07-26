@@ -4,71 +4,11 @@ A powerful CLI-based AI coding agent built with Python, FastAPI, and Textual UI.
 
 ## ✨ Features
 
-- **Interactive Textual UI** - Beautiful terminal-based interface
+- **Interactive Textual UI** - Beautiful terminal-based interface with command execution
 - **AI-Powered Code Assistant** - Local Gemini AI integration
-- **Comprehensive Commands** - File operations, code analysis, project management
-- **FastAPI Backend** - RESTful API for agent operations
+- **Focused Development Commands** - Essential workflow commands for coding
 - **SQLite Database** - Local data storage with SQLAlchemy ORM
-- **JWT Authentication** - Secure session management
-- **Alembic Migrations** - Database schema management
-
-## 🏗️ Project Structure
-
-```
-hackathon/
-├── main.py                    # Application entry point
-├── requirements.txt           # Python dependencies
-├── env.example               # Environment variables template
-├── alembic.ini               # Alembic configuration
-├── alembic/                  # Database migrations
-│   ├── env.py
-│   ├── script.py.mako
-│   └── versions/
-├── app/                      # Main application package
-│   ├── __init__.py
-│   ├── api/                  # FastAPI routes and dependencies
-│   │   ├── routes/
-│   │   │   ├── auth.py
-│   │   │   ├── agent.py
-│   │   │   └── commands.py
-│   │   └── dependencies.py
-│   ├── models/               # SQLAlchemy models
-│   │   ├── user.py
-│   │   ├── agent.py
-│   │   ├── command.py
-│   │   └── session.py
-│   ├── services/             # Business logic services
-│   │   ├── agent_service.py
-│   │   ├── auth_service.py
-│   │   ├── command_service.py
-│   │   └── ai_service.py
-│   ├── functions/            # Agent functions
-│   │   ├── code_analysis.py
-│   │   ├── file_operations.py
-│   │   └── code_generation.py
-│   ├── commands/             # Command definitions
-│   │   ├── command_enum.py   # Available commands enum
-│   │   ├── base.py
-│   │   ├── code_commands.py
-│   │   └── file_commands.py
-│   ├── agent/                # Agent core logic
-│   │   ├── core.py
-│   │   ├── context.py
-│   │   └── memory.py
-│   ├── ui/                   # Textual UI components
-│   │   ├── welcome_screen.py # Welcome screen
-│   │   ├── main_screen.py
-│   │   ├── chat_screen.py
-│   │   └── components/
-│   ├── core/                 # Core utilities
-│   │   ├── config.py
-│   │   ├── database.py
-│   │   ├── security.py
-│   │   └── exceptions.py
-│   └── utils/                # Helper utilities
-│       ├── logger.py
-│       └── helpers.py
-```
+- **Clean Architecture** - SOLID principles with proper separation of concerns
 
 ## 🚀 Quick Start
 
@@ -86,102 +26,148 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 2. Configure Environment
+### 2. Run the Application
 
 ```bash
-# Copy environment template
-cp env.example .env
-
-# Edit .env file with your configurations
-# Update AI_API_URL, SECRET_KEY, etc.
-```
-
-### 3. Initialize Database
-
-```bash
-# Initialize Alembic
-alembic init alembic
-
-# Create initial migration
-alembic revision --autogenerate -m "Initial migration"
-
-# Apply migrations
-alembic upgrade head
-```
-
-### 4. Run the Application
-
-```bash
-# Start the welcome screen
+# Start the AI Coding Agent
 python main.py
 ```
 
-## 🎮 Usage
+### 3. Use the Command Interface
 
-### Welcome Screen
-- Displays all available commands organized by category
-- Press `Enter` to start the agent
-- Press `h` for help
+1. **Welcome Screen** - Shows available commands and instructions
+2. **Press Enter** - Enters the command interface
+3. **Type `/setup`** - Configure your Gemini API key and model
+4. **Use other commands** - Type `/help` to see all available commands
+
+## 🎯 Available Commands
+
+### **Command Interface Usage:**
+All commands must start with `/` and are executed in the command interface:
+
+1. **`/setup`** - Configure Gemini API key and model selection
+   - Prompts for API key (get one from [Google AI Studio](https://makersuite.google.com/app/apikey))
+   - Choose from available models (gemini-2.0-flash-exp, gemini-1.5-pro, etc.)
+   - Saves configuration to local SQLite database
+
+2. **`/models`** - Display database models and relationships *(Coming Soon)*
+3. **`/init`** - Create project documentation and save context *(Coming Soon)*
+4. **`/review-changes`** - Git diff analysis and code review *(Coming Soon)*
+5. **`/explain`** - Explain code from files or pasted content *(Coming Soon)*
+6. **`/commit`** - Generate intelligent commit messages *(Coming Soon)*
+7. **`/clean`** - Delete SQLite database and cleanup *(Coming Soon)*
+
+### **UI Commands:**
+- **`/help`** - Show detailed help with all commands
+- **`/exit`** or **`/quit`** - Exit the application
+- **`/clear`** - Clear command history
+- **`Escape`** - Go back to welcome screen
+- **`Ctrl+L`** - Clear command history (keyboard shortcut)
+
+## 🎮 How to Use
+
+### **1. Start the Application**
+```bash
+python main.py
+```
+
+### **2. Welcome Screen**
+- Shows all available commands
+- Press `Enter` to start command interface
 - Press `q` or `Ctrl+C` to quit
 
-### Available Commands
+### **3. Command Interface**
+- Type commands starting with `/`
+- Example: `/setup` to configure agent
+- Press `Escape` to go back to welcome
+- View command history in the scrollable area
 
-#### File Operations
-- `create_file` - Create a new file with specified content
-- `read_file` - Read and display the contents of a file
-- `edit_file` - Edit an existing file
-- `delete_file` - Delete a file from the filesystem
-- `list_files` - List files in a directory
+### **4. Setup Your Agent (First Time)**
+```
+$ /setup
 
-#### Code Operations
-- `analyze_code` - Analyze code for issues and improvements
-- `generate_code` - Generate code based on requirements
-- `refactor_code` - Refactor existing code for better structure
-- `debug_code` - Help debug code issues
-- `format_code` - Format code according to standards
+🤖 Welcome to Agent Setup!
+==================================================
 
-#### Project Operations
-- `create_project` - Create a new project structure
-- `build_project` - Build the current project
-- `test_project` - Run tests for the project
-- `deploy_project` - Deploy the project
+🔑 Gemini API Key Configuration
+-----------------------------------
+Please enter your Gemini API key:
+(You can get one from: https://makersuite.google.com/app/apikey)
 
-#### AI Operations
-- `ask_ai` - Ask the AI agent a question
-- `explain_code` - Get AI explanation of code
-- `suggest_improvements` - Get AI suggestions for improvements
-- `generate_docs` - Generate documentation using AI
+🔑 API Key: [your_api_key_here]
 
-#### System Operations
-- `execute_command` - Execute a system command
-- `install_package` - Install a package or dependency
-- `search_files` - Search for files or content
+🤖 Model Selection
+--------------------
+Available Gemini models:
+  1. gemini-2.0-flash-exp
+  2. gemini-1.5-pro
+  3. gemini-1.5-flash
+  4. gemini-pro
 
-#### Agent Operations
-- `show_help` - Show help information
-- `show_status` - Show agent status and context
-- `clear_context` - Clear the agent's context
-- `exit` - Exit the agent
+🤖 Model choice: 2
+✅ Selected: gemini-1.5-pro
 
-## 🛠️ Development
+✅ Setup completed successfully!
+🔑 API Key: ****your_key
+🤖 Selected Model: gemini-1.5-pro
+```
 
-This project follows clean architecture principles and is designed for extensibility. Each component is modular and can be developed independently.
+## 🏗️ Project Structure
 
-### Key Technologies
-- **Python 3.8+** - Programming language
-- **FastAPI** - Web framework for APIs
-- **Textual** - Terminal user interface framework
-- **SQLAlchemy** - ORM for database operations
-- **Alembic** - Database migration tool
-- **Pydantic** - Data validation and settings
-- **Rich** - Rich text and beautiful formatting
+```
+hackathon/
+├── main.py                    # Application entry point
+├── requirements.txt           # Python dependencies
+├── env.example               # Environment variables template
+├── alembic.ini               # Alembic configuration
+├── app/
+│   ├── commands/             # Command implementations
+│   │   ├── command_enum.py   # Available commands enum
+│   │   ├── command_manager.py # Command execution manager
+│   │   ├── setup_command.py  # Setup command (fully implemented)
+│   │   └── base.py          # Base command classes
+│   ├── models/              # SQLAlchemy models
+│   │   └── user.py          # User & settings models with business logic
+│   ├── core/                # Core utilities
+│   │   ├── config.py        # Application configuration
+│   │   └── database.py      # Database connection
+│   └── ui/                  # Textual UI components
+│       ├── welcome_screen.py # Welcome screen
+│       └── command_screen.py # Command interface
+```
 
-### Architecture Principles
-- SOLID principles
-- Clean Architecture
-- Domain-Driven Design (DDD)
-- CQRS pattern support
-- Event-driven architecture ready
+## 🛠️ Architecture
+
+This project follows **Clean Architecture** principles:
+
+- **🎨 UI Layer** (`app/ui/`) - Textual interface components
+- **⚡ Command Layer** (`app/commands/`) - Command execution and user interaction
+- **💾 Model Layer** (`app/models/`) - Business logic and data operations
+- **🔧 Core Layer** (`app/core/`) - Configuration and database infrastructure
+
+### **Key Design Principles:**
+- ✅ **Single Responsibility** - Each class has one clear purpose
+- ✅ **Separation of Concerns** - UI, commands, and data logic are separate
+- ✅ **Dependency Inversion** - Commands depend on model abstractions
+- ✅ **Clean Interfaces** - Clear contracts between layers
+
+## 🔧 Development Status
+
+- ✅ **Setup Command** - Complete and functional
+- ✅ **UI Integration** - Command interface working
+- ✅ **Database Layer** - User and settings models
+- ✅ **Command Architecture** - Extensible command system
+- 🔄 **Other Commands** - Coming soon (models, init, review-changes, etc.)
+
+## 📝 Next Steps
+
+1. ✅ **Setup Command** - Complete with UI integration
+2. 🔄 **Models Command** - Display database models and relationships
+3. 🔄 **Init Command** - Create documentation and context
+4. 🔄 **Review Changes** - Git diff analysis
+5. 🔄 **Explain Command** - Code explanation
+6. 🔄 **Commit Command** - Smart commit messages
+7. 🔄 **Clean Command** - Database cleanup
 
 ## 📝 License
 
@@ -190,4 +176,5 @@ This project is part of a hackathon and is intended for educational and developm
 ---
 
 **Happy Coding! 🚀**
-# boot-hn-hackathon
+
+Ready to get started? Run `python main.py` and type `/setup` to configure your agent!

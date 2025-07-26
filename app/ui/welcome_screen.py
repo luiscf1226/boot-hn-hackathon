@@ -7,6 +7,7 @@ from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical
 from textual.widgets import Header, Footer, Static, Button, DataTable, Rule
 from textual.binding import Binding
+from textual.screen import Screen
 from rich.text import Text
 from rich.panel import Panel
 from rich.columns import Columns
@@ -48,10 +49,10 @@ class WelcomeScreen(Static):
         # Instructions
         instructions_text = Text.from_markup(
             "[bold yellow]Quick Start:[/bold yellow]\n"
-            "• Press [bold cyan]Enter[/bold cyan] to start chatting with the agent\n"
+            "• Press [bold cyan]Enter[/bold cyan] to start the command interface\n"
+            "• Type [bold cyan]/setup[/bold cyan] to configure your agent\n"
             "• Type [bold cyan]/help[/bold cyan] for detailed help\n"
-            "• Type [bold cyan]/exit[/bold cyan] to quit\n"
-            "• Use [bold cyan]↑↓[/bold cyan] arrow keys to navigate commands"
+            "• Press [bold cyan]q[/bold cyan] or [bold cyan]Ctrl+C[/bold cyan] to quit"
         )
 
         yield Static(
@@ -79,7 +80,7 @@ class WelcomeScreen(Static):
             # Commands in this category
             for cmd_info in commands:
                 command_line = Text()
-                command_line.append(f"  {cmd_info.command.value}", style="bold cyan")
+                command_line.append(f"  /{cmd_info.command.value}", style="bold cyan")
                 command_line.append(" - ", style="dim")
                 command_line.append(cmd_info.description, style="white")
                 content_parts.append(command_line)
@@ -130,7 +131,7 @@ class WelcomeApp(App):
 
     BINDINGS = [
         Binding("ctrl+c", "quit", "Quit"),
-        Binding("enter", "start_agent", "Start Agent"),
+        Binding("enter", "start_command_interface", "Start Command Interface"),
         Binding("h", "show_help", "Help"),
         Binding("q", "quit", "Quit"),
     ]
@@ -148,15 +149,16 @@ class WelcomeApp(App):
         """Handle quit action."""
         self.exit()
 
-    def action_start_agent(self) -> None:
-        """Handle start agent action."""
-        # TODO: Transition to main agent interface
-        self.push_screen("chat")
+    def action_start_command_interface(self) -> None:
+        """Handle start command interface action."""
+        from app.ui.command_screen import CommandScreen
+        self.push_screen(CommandScreen())
 
     def action_show_help(self) -> None:
         """Handle show help action."""
-        # TODO: Show detailed help screen
-        self.bell()
+        # Start command interface and show help
+        from app.ui.command_screen import CommandScreen
+        self.push_screen(CommandScreen())
 
 
 if __name__ == "__main__":
