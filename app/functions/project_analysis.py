@@ -24,14 +24,34 @@ def resolve_project_path(input_path: str, project_root: str = None) -> Path:
     Returns:
         Path object with resolved path
     """
+    # First resolve the project_root itself using the same logic
     if project_root:
-        base_path = Path(project_root).resolve()
+        project_root = project_root.strip()
+
+        # Handle empty or current directory for project_root
+        if not project_root or project_root == "." or project_root == "./":
+            base_path = Path.cwd().resolve()
+        else:
+            root_path_obj = Path(project_root)
+
+            # Apply same logic to project_root
+            if root_path_obj.is_absolute():
+                # Check if it's a real absolute system path
+                if len(root_path_obj.parts) > 2 and (root_path_obj.exists() or str(root_path_obj).startswith(('/', 'C:', 'D:'))):
+                    base_path = root_path_obj.resolve()
+                else:
+                    # Treat as relative to current directory (remove leading slash)
+                    relative_part = str(root_path_obj).lstrip('/')
+                    base_path = (Path.cwd() / relative_part).resolve()
+            else:
+                # Regular relative path
+                base_path = (Path.cwd() / project_root).resolve()
     else:
         base_path = Path.cwd().resolve()
 
     input_path = input_path.strip()
 
-    # Handle empty or current directory
+    # Handle empty or current directory for input_path
     if not input_path or input_path == "." or input_path == "./":
         return base_path
 
