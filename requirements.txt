@@ -1,0 +1,54 @@
+# FastAPI and related
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Database
+sqlalchemy==2.0.23
+alembic==1.13.0
+sqlite-utils==3.35.2
+
+# Authentication & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.1.1
+
+# Environment variables
+python-dotenv==1.0.0
+
+# HTTP requests (for AI API calls)
+httpx==0.25.2
+aiohttp==3.9.1
+
+# Textual UI
+textual==0.45.1
+rich==13.7.0
+
+# Data validation and serialization
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Date and time utilities
+python-dateutil==2.8.2
+
+# Async utilities
+asyncio-mqtt==0.16.1
+
+# Logging
+structlog==23.2.0
+
+# Testing (optional, for development)
+pytest==7.4.3
+pytest-asyncio==0.21.1
+httpx==0.25.2
+
+# Code formatting and linting (optional, for development)
+black==23.11.0
+flake8==6.1.0
+isort==5.12.0
+
+# Type checking (optional, for development)
+mypy==1.7.1
+
+# Development utilities
+watchdog==3.0.0
