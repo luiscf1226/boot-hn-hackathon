@@ -29,7 +29,7 @@ class ModelsCommand(BaseCommand):
 
             # Get or create user
             user = User.get_or_create_default_user(self.db)
-            
+
             # Get model from kwargs (if user wants to change)
             new_model = kwargs.get("model")
             available_models = User.get_available_models()
@@ -57,7 +57,7 @@ class ModelsCommand(BaseCommand):
             success = user.update_configuration(self.db, api_key, new_model)
             if success:
                 return CommandResult(True,
-                    f"✅ Model changed to: {new_model}",
+                    f"Model changed to: {new_model}",
                     {"model": new_model, "previous_model": user.selected_model}
                 ).to_dict()
             else:
@@ -75,10 +75,10 @@ Models Command Help
 
 The 'models' command shows your current AI model and allows you to change it.
 
-🤖 Available Models:
+Available Models:
      * {models_list}
 
-Usage: 
+Usage:
 - Type '/models' to see current model and options
 - Select a number to change to that model
 

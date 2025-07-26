@@ -65,11 +65,11 @@ class WelcomeApp(App):
         progress_widget = self.query_one("#progress")
         self.progress_manager = ProgressManager(progress_widget)
         self.command_handlers = CommandHandlers(self.progress_manager)
-        
+
         output = self.query_one("#output")
         output.write("Ready! Available commands: [bold]/setup[/bold], [bold]/models[/bold], [bold]/init[/bold], [bold]/clean[/bold], [bold]/commit[/bold], [bold]/explain[/bold], [bold]/clear[/bold]")
-        output.write("[dim]💡 Tip: Use Ctrl+L to clear terminal, Ctrl+C to clean database and quit[/dim]")
-        output.write("[dim]🖱️  You can select and copy text with your mouse![/dim]")
+        output.write("[dim]Tip: Use Ctrl+L to clear terminal, Ctrl+C to clean database and quit[/dim]")
+        output.write("[dim]You can select and copy text with your mouse![/dim]")
         self.query_one("#input").focus()
 
         # Hide progress bar initially
@@ -78,7 +78,7 @@ class WelcomeApp(App):
     async def action_cleanup_and_quit(self) -> None:
         """Clean database and quit application."""
         output = self.query_one("#output")
-        output.write("[blue]🧹 Cleaning database before exit...[/blue]")
+        output.write("[blue]Cleaning database before exit...[/blue]")
 
         try:
             from app.functions.database_operations import clean_database
@@ -86,7 +86,7 @@ class WelcomeApp(App):
             output.write(f"[green]{result}[/green]")
             await asyncio.sleep(1)  # Brief pause to show message
         except Exception as e:
-            output.write(f"[red]❌ Error cleaning database: {e}[/red]")
+            output.write(f"[red]Error cleaning database: {e}[/red]")
             await asyncio.sleep(1)
 
         self.exit()
@@ -95,7 +95,7 @@ class WelcomeApp(App):
         """Clear the terminal output."""
         output = self.query_one("#output")
         output.clear()
-        output.write("🧹 Terminal cleared! Type [bold]/setup[/bold], [bold]/models[/bold], [bold]/init[/bold], [bold]/clean[/bold], [bold]/commit[/bold], [bold]/review-changes[/bold], [bold]/explain[/bold], or [bold]/clear[/bold].")
+        output.write("Terminal cleared! Type [bold]/setup[/bold], [bold]/models[/bold], [bold]/init[/bold], [bold]/clean[/bold], [bold]/commit[/bold], [bold]/review-changes[/bold], [bold]/explain[/bold], or [bold]/clear[/bold].")
 
     async def on_input_submitted(self, event: Input.Submitted) -> None:
         """Handle input submission."""
@@ -141,7 +141,7 @@ class WelcomeApp(App):
     async def _handle_command(self, output: RichLog, text: str) -> None:
         """Handle main command routing."""
         input_widget = self.query_one("#input")
-        
+
         if text == "/setup":
             result = await self.command_handlers.handle_setup(output)
             await self._process_setup_result(result, input_widget)
@@ -167,7 +167,7 @@ class WelcomeApp(App):
             await self.action_clear_terminal()
         elif text:
             output.write("[red]Unknown command. Use /setup, /models, /init, /clean, /commit, /review-changes, /explain, or /clear[/red]")
-    
+
     async def _process_setup_result(self, result: dict, input_widget: Input) -> None:
         """Process setup command result and update state."""
         if result.get("prompt") == "api_key":
@@ -180,7 +180,7 @@ class WelcomeApp(App):
             input_widget.placeholder = "Enter number (1-4)"
         else:
             self._update_default_placeholder(input_widget)
-    
+
     async def _process_models_result(self, result: dict, input_widget: Input) -> None:
         """Process models command result and update state."""
         if result.get("prompt") == "model":
@@ -190,7 +190,7 @@ class WelcomeApp(App):
             input_widget.placeholder = "Enter number (1-4) or press Enter"
         else:
             self._update_default_placeholder(input_widget)
-    
+
     async def _process_init_result(self, result: dict, input_widget: Input) -> None:
         """Process init command result and update state."""
         if result.get("prompt") == "project_path":
@@ -198,7 +198,7 @@ class WelcomeApp(App):
             input_widget.placeholder = result.get("placeholder", "Enter project path")
         else:
             self._update_default_placeholder(input_widget)
-    
+
     async def _process_clean_result(self, result: dict, input_widget: Input) -> None:
         """Process clean command result and update state."""
         if result.get("prompt") == "action":
@@ -206,7 +206,7 @@ class WelcomeApp(App):
             input_widget.placeholder = "Enter action (1-3 or clean/stats/vacuum)"
         else:
             self._update_default_placeholder(input_widget)
-    
+
     async def _process_commit_result(self, result: dict, input_widget: Input) -> None:
         """Process commit command result and update state."""
         if result.get("prompt") == "commit_confirm":
@@ -215,7 +215,7 @@ class WelcomeApp(App):
             input_widget.placeholder = "yes/no/edit"
         else:
             self._update_default_placeholder(input_widget)
-    
+
     async def _process_review_result(self, result: dict, input_widget: Input) -> None:
         """Process review command result and update state."""
         if result.get("prompt") == "review_save_confirm":
@@ -224,7 +224,7 @@ class WelcomeApp(App):
             input_widget.placeholder = "yes/no"
         else:
             self._update_default_placeholder(input_widget)
-    
+
     async def _process_explain_result(self, result: dict, input_widget: Input) -> None:
         """Process explain command result and update state."""
         if result.get("prompt") == "explain_input":
@@ -233,7 +233,7 @@ class WelcomeApp(App):
             input_widget.placeholder = "Enter 1-3, paste, file <path>, or current"
         else:
             self._update_default_placeholder(input_widget)
-    
+
     def _update_default_placeholder(self, input_widget: Input) -> None:
         """Update input placeholder to default state."""
         input_widget.placeholder = self.state.get_placeholder_text()
@@ -241,7 +241,7 @@ class WelcomeApp(App):
     async def _handle_api_key_input(self, output: RichLog, api_key: str) -> None:
         """Handle API key input during setup."""
         input_widget = self.query_one("#input")
-        
+
         try:
             if not api_key.strip():
                 output.write("[dim]Setup cancelled.[/dim]")
@@ -293,7 +293,7 @@ class WelcomeApp(App):
     async def _handle_model_choice(self, output: RichLog, choice: str) -> None:
         """Handle model selection choice."""
         input_widget = self.query_one("#input")
-        
+
         try:
             if not choice.strip():
                 output.write("[dim]Model selection cancelled.[/dim]")
@@ -323,20 +323,20 @@ class WelcomeApp(App):
     async def _handle_init_path(self, output: RichLog, path: str) -> None:
         """Handle project path input for init command."""
         input_widget = self.query_one("#input")
-        
+
         try:
             result = await self.command_handlers.execute_init_with_progress(output, path)
             self.state.init_waiting_for_path = False
             self._update_default_placeholder(input_widget)
         except Exception as e:
-            output.write(f"[red]❌ Error during initialization: {e}[/red]")
+            output.write(f"[red]Error during initialization: {e}[/red]")
             self.state.init_waiting_for_path = False
             self._update_default_placeholder(input_widget)
 
     async def _handle_clean_action(self, output: RichLog, choice: str) -> None:
         """Handle clean action selection."""
         input_widget = self.query_one("#input")
-        
+
         try:
             if not choice.strip():
                 output.write("[dim]Clean operation cancelled.[/dim]")
@@ -350,7 +350,7 @@ class WelcomeApp(App):
 
             if hasattr(self.state, 'pending_clean_action') and self.state.pending_clean_action:
                 if choice.lower() == "yes":
-                    output.write("[blue]🧹 Cleaning database...[/blue]")
+                    output.write("[blue]Cleaning database...[/blue]")
                     result = await command_manager.execute_command("clean", action=self.state.pending_clean_action)
                     if result.get("success"):
                         output.write(f"[green]{result['message']}[/green]")
@@ -365,7 +365,7 @@ class WelcomeApp(App):
                 return
 
             if action == "clean":
-                output.write("[red]⚠️  WARNING: This will permanently delete ALL data![/red]")
+                output.write("[red]WARNING: This will permanently delete ALL data![/red]")
                 output.write("[dim]Including: user settings, API keys, conversation history[/dim]")
                 output.write("[yellow]Type 'yes' to confirm or anything else to cancel:[/yellow]")
 
@@ -391,7 +391,7 @@ class WelcomeApp(App):
     async def _handle_commit_confirmation(self, output: RichLog, choice: str) -> None:
         """Handle commit confirmation choice."""
         input_widget = self.query_one("#input")
-        
+
         try:
             choice = choice.lower().strip()
 
@@ -403,7 +403,7 @@ class WelcomeApp(App):
                 return
 
             if choice == "yes":
-                output.write("[blue]🚀 Executing commit...[/blue]")
+                output.write("[blue]Executing commit...[/blue]")
                 result = await command_manager.execute_command("commit", action="execute", commit_message=self.state.pending_commit_message)
 
                 if result.get("success"):
@@ -428,7 +428,7 @@ class WelcomeApp(App):
 
                 if new_message:
                     self.state.pending_commit_message = new_message
-                    output.write(f"[green]✅ Updated commit message: \"{new_message}\"[/green]")
+                    output.write(f"[green]Updated commit message: \"{new_message}\"[/green]")
                     output.write("[yellow]Execute this commit? (yes/no/edit):[/yellow]")
                     input_widget.placeholder = "yes/no/edit"
                 else:
@@ -446,19 +446,19 @@ class WelcomeApp(App):
     async def _handle_review_confirmation(self, output: RichLog, choice: str) -> None:
         """Handle review confirmation choice."""
         input_widget = self.query_one("#input")
-        
+
         try:
             choice = choice.lower().strip()
 
             if not choice or choice == "no":
-                output.write("[dim]Review discarded (not saved to database).[/dim]")
+                output.write("[dim]Review discarded (not saved to database)[/dim]")
                 self.state.review_waiting_for_confirmation = False
                 self.state.pending_review_data = None
                 self._update_default_placeholder(input_widget)
                 return
 
             if choice == "yes":
-                output.write("[green]✅ Code review saved to database successfully![/green]")
+                output.write("[green]Code review saved to database successfully![/green]")
                 session_id = self.state.pending_review_data.get("session_id", "Unknown")
                 output.write(f"[dim]Session ID: {session_id}[/dim]")
 
@@ -478,7 +478,7 @@ class WelcomeApp(App):
     async def _handle_explain_input(self, output: RichLog, text: str) -> None:
         """Handle explain input."""
         input_widget = self.query_one("#input")
-        
+
         try:
             if not text.strip():
                 output.write("[dim]Explain operation cancelled.[/dim]")
@@ -491,7 +491,7 @@ class WelcomeApp(App):
 
             if self.state.explain_input_type == "option":
                 if text in ["1", "paste"]:
-                    output.write("[blue]📝 Paste your code below and press Enter:[/blue]")
+                    output.write("[blue]Paste your code below and press Enter:[/blue]")
                     output.write("[dim]Tip: You can paste multi-line code. Press Enter when done.[/dim]")
                     self.state.explain_input_type = "code_paste"
                     input_widget.placeholder = "Paste your code here..."
@@ -504,7 +504,7 @@ class WelcomeApp(App):
                         self.state.explain_input_type = None
                         self._update_default_placeholder(input_widget)
                     else:
-                        output.write("[blue]📁 Enter the file path to analyze:[/blue]")
+                        output.write("[blue]Enter the file path to analyze:[/blue]")
                         output.write("[dim]Example: ./main.py or /path/to/file.py[/dim]")
                         self.state.explain_input_type = "file_path"
                         input_widget.placeholder = "Enter file path..."
@@ -531,7 +531,7 @@ class WelcomeApp(App):
                 self._update_default_placeholder(input_widget)
 
         except Exception as e:
-            output.write(f"[red]❌ Error processing explain input: {e}[/red]")
+            output.write(f"[red]Error processing explain input: {e}[/red]")
             self.state.explain_waiting_for_input = False
             self.state.explain_input_type = None
             self._update_default_placeholder(input_widget)

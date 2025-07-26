@@ -20,7 +20,7 @@ class CleanCommand(BaseCommand):
         try:
             # Get action from kwargs
             action = kwargs.get("action", "").lower()
-            
+
             if not action:
                 return {
                     "prompt": "action",
@@ -31,19 +31,19 @@ class CleanCommand(BaseCommand):
                         {"key": "vacuum", "desc": "Vacuum database (optimize and reclaim space)"}
                     ]
                 }
-            
+
             if action == "clean":
                 result = clean_database()
                 return CommandResult(True, result).to_dict()
-                
+
             elif action == "stats":
                 result = get_database_stats()
                 return CommandResult(True, result).to_dict()
-                
+
             elif action == "vacuum":
                 result = vacuum_database()
                 return CommandResult(True, result).to_dict()
-                
+
             else:
                 return CommandResult(False, f"Unknown action: {action}. Use 'clean', 'stats', or 'vacuum'").to_dict()
 
@@ -57,20 +57,20 @@ Clean Command Help
 
 The 'clean' command provides database maintenance operations.
 
-🧹 Available Actions:
+Available Actions:
 • clean  - Drop all tables and recreate schema (clears all data)
 • stats  - Show database statistics and table information
 • vacuum - Optimize database and reclaim unused space
 
-⚠️  Warning: 
+Warning:
 The 'clean' action will permanently delete all data including:
 - User settings and API keys
 - AI conversation history
 - All session data
 
-🔧 Usage:
+Usage:
 - Type '/clean' and select an action
 - Use with caution, especially the 'clean' action
 
-💡 Tip: Use 'stats' first to see what data you have before cleaning
+Tip: Use 'stats' first to see what data you have before cleaning
         """

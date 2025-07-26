@@ -53,8 +53,8 @@ class ExplainCommand(BaseCommand):
             # Check if user has API key configured
             user = User.get_or_create_default_user(self.db)
             if not user.gemini_api_key:
-                return CommandResult(False, 
-                    "❌ No API key found. Please run /setup first to configure your Gemini API key for AI code explanation."
+                return CommandResult(False,
+                    "No API key found. Please run /setup first to configure your Gemini API key for AI code explanation."
                 ).to_dict()
 
             # Initialize AI agent
@@ -122,16 +122,16 @@ Provide a comprehensive explanation that helps understand what this code does, h
                     user_message=user_message,
                     save_to_db=True
                 )
-                
+
                 if not ai_response["success"]:
                     return CommandResult(False, f"AI code explanation failed: {ai_response.get('error', 'Unknown error')}").to_dict()
-                    
+
             except Exception as e:
                 return CommandResult(False, f"AI service error: {str(e)}").to_dict()
 
             # Clean up the AI response
             explanation_content = ai_response["response"].strip()
-            
+
             # Return the explanation
             return {
                 "success": True,
@@ -191,8 +191,8 @@ Provide a comprehensive explanation that helps understand what this code does, h
             # Check if user has API key configured
             user = User.get_or_create_default_user(self.db)
             if not user.gemini_api_key:
-                return CommandResult(False, 
-                    "❌ No API key found. Please run /setup first to configure your Gemini API key for AI code explanation."
+                return CommandResult(False,
+                    "No API key found. Please run /setup first to configure your Gemini API key for AI code explanation."
                 ).to_dict()
 
             # Initialize AI agent
@@ -269,16 +269,16 @@ Provide a thorough analysis explaining what this file does, how it's structured,
                     user_message=user_message,
                     save_to_db=True
                 )
-                
+
                 if not ai_response["success"]:
                     return CommandResult(False, f"AI file analysis failed: {ai_response.get('error', 'Unknown error')}").to_dict()
-                    
+
             except Exception as e:
                 return CommandResult(False, f"AI service error: {str(e)}").to_dict()
 
             # Clean up the AI response
             explanation_content = ai_response["response"].strip()
-            
+
             # Return the explanation
             return {
                 "success": True,
@@ -301,18 +301,18 @@ Provide a thorough analysis explaining what this file does, how it's structured,
         """Analyze current directory structure."""
         try:
             current_dir = os.getcwd()
-            
+
             # Get directory structure (limited depth to avoid huge outputs)
             dir_structure = self._get_directory_structure(current_dir, max_depth=3)
-            
+
             # Get key files for analysis
             key_files = self._identify_key_files(current_dir)
-            
+
             # Check if user has API key configured
             user = User.get_or_create_default_user(self.db)
             if not user.gemini_api_key:
-                return CommandResult(False, 
-                    "❌ No API key found. Please run /setup first to configure your Gemini API key for AI code explanation."
+                return CommandResult(False,
+                    "No API key found. Please run /setup first to configure your Gemini API key for AI code explanation."
                 ).to_dict()
 
             # Initialize AI agent
@@ -328,42 +328,42 @@ Provide a thorough analysis explaining what this file does, how it's structured,
 
 Structure your analysis as follows:
 
-## 📁 Project Overview
+## Project Overview
 - Project name and apparent purpose
 - Technology stack and framework used
 - Project type (web app, library, CLI tool, etc.)
 
-## 🏗️ Architecture Analysis
+## Architecture Analysis
 - Directory structure and organization patterns
 - Separation of concerns
 - Architectural patterns (MVC, microservices, etc.)
 - Configuration and setup files
 
-## 📂 Key Components
+## Key Components
 - Main application directories and their purposes
 - Important configuration files
 - Build and deployment files
 - Documentation and testing structure
 
-## 🔍 Code Organization
+## Code Organization
 - How code is structured and modularized
 - Naming conventions and patterns
 - Dependencies and external libraries
 - Development vs production concerns
 
-## 💡 Best Practices Observed
+## Best Practices Observed
 - Good organizational patterns
 - Standard conventions followed
 - Professional development practices
 - Documentation quality
 
-## ⚠️ Potential Issues
+## Potential Issues
 - Missing standard files or directories
 - Organizational concerns
 - Suggestions for improvement
 - Standard patterns not followed
 
-## 🎯 Development Insights
+## Development Insights
 - What this project structure teaches
 - How developers can learn from this organization
 - Patterns to adopt or avoid
@@ -390,20 +390,20 @@ Analyze the project structure, identify the technology stack, architectural patt
                     user_message=user_message,
                     save_to_db=True
                 )
-                
+
                 if not ai_response["success"]:
                     return CommandResult(False, f"AI directory analysis failed: {ai_response.get('error', 'Unknown error')}").to_dict()
-                    
+
             except Exception as e:
                 return CommandResult(False, f"AI service error: {str(e)}").to_dict()
 
             # Clean up the AI response
             explanation_content = ai_response["response"].strip()
-            
+
             # Return the explanation
             return {
                 "success": True,
-                "message": f"🤖 AI Directory Analysis Complete for {os.path.basename(current_dir)}:",
+                "message": f"AI Directory Analysis Complete for {os.path.basename(current_dir)}:",
                 "explanation_content": explanation_content,
                 "directory_path": current_dir,
                 "directory_structure": dir_structure,
@@ -421,7 +421,7 @@ Analyze the project structure, identify the technology stack, architectural patt
         """Get directory structure as a string."""
         if current_depth >= max_depth:
             return ""
-        
+
         structure = []
         try:
             items = sorted(os.listdir(path))
@@ -429,10 +429,10 @@ Analyze the project structure, identify the technology stack, architectural patt
                 # Skip hidden files and common unimportant directories
                 if item.startswith('.') or item in ['__pycache__', 'node_modules', '.git', 'venv', 'env']:
                     continue
-                
+
                 item_path = os.path.join(path, item)
                 indent = "  " * current_depth
-                
+
                 if os.path.isdir(item_path):
                     structure.append(f"{indent}{item}/")
                     if current_depth < max_depth - 1:
@@ -443,7 +443,7 @@ Analyze the project structure, identify the technology stack, architectural patt
                     structure.append(f"{indent}{item}")
         except PermissionError:
             structure.append(f"{'  ' * current_depth}[Permission Denied]")
-        
+
         return "\n".join(structure)
 
     def _identify_key_files(self, path: str) -> str:
@@ -458,23 +458,23 @@ Analyze the project structure, identify the technology stack, architectural patt
             'config.py', 'settings.py', 'config.json',
             '.env.example', 'env.example'
         ]
-        
+
         try:
             for root, dirs, files in os.walk(path):
                 # Only check root and first level directories
                 if root.count(os.sep) - path.count(os.sep) > 1:
                     continue
-                    
+
                 for file in files:
                     if file in important_files:
                         rel_path = os.path.relpath(os.path.join(root, file), path)
                         key_files.append(f"- {rel_path}")
-                        
+
                 # Stop descending into hidden or unimportant directories
                 dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['__pycache__', 'node_modules', 'venv', 'env']]
         except Exception:
             pass
-        
+
         return "\n".join(key_files) if key_files else "- No standard project files found"
 
     def get_help(self) -> str:
@@ -484,46 +484,46 @@ Analyze the project structure, identify the technology stack, architectural patt
 
 The 'explain' command provides AI-powered code explanation and analysis.
 
-🤖 How it works:
+How it works:
 1. Analyzes code, files, or project structure
 2. Uses AI to provide comprehensive explanations
 3. Breaks down complex concepts into understandable parts
 4. Provides learning insights and best practices
 
-📋 Usage Options:
+Usage Options:
 
 /explain                    # Interactive mode - choose what to analyze
 /explain paste <code>       # Analyze pasted code
 /explain file <path>        # Analyze specific file
 /explain current           # Analyze current directory structure
 
-📁 File Analysis:
+File Analysis:
 - Analyzes file structure, purpose, and implementation
 - Explains algorithms, patterns, and techniques used
 - Identifies learning opportunities and best practices
 - Supports most programming languages
 
-🏗️ Directory Analysis:
+Directory Analysis:
 - Examines project structure and organization
 - Identifies technology stack and architectural patterns
 - Analyzes configuration and setup files
 - Provides insights about project organization
 
-💡 Code Analysis Features:
+Code Analysis Features:
 - Line-by-line breakdown of complex logic
 - Explanation of design patterns and algorithms
 - Security and performance considerations
 - Best practices and potential improvements
 - Educational insights for learning
 
-📋 Prerequisites:
+Prerequisites:
 - Set GEMINI_API_KEY in your .env file
 - Run /setup to configure your AI model
 
-🔄 Examples:
+Examples:
 /explain                                    # Choose analysis type
 /explain file ./main.py                     # Analyze main.py file
 /explain current                           # Analyze current project
 /explain paste "def factorial(n): ..."     # Analyze pasted code
 
-⚠️ Note: File analysis limited to 50KB files for performance."""
+Note: File analysis limited to 50KB files for performance."""

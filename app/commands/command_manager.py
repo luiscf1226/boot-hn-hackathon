@@ -29,27 +29,25 @@ class CommandManager:
         """Register all available commands."""
         # Register setup command
         self._commands[AgentCommand.SETUP] = SetupCommand
-        
+
         # Register models command
         self._commands[AgentCommand.MODELS] = ModelsCommand
-        
+
         # Register init command
         self._commands[AgentCommand.INIT] = InitCommand
-        
+
         # Register clean command
         self._commands[AgentCommand.CLEAN] = CleanCommand
-        
+
         # Register commit command
         self._commands[AgentCommand.COMMIT] = CommitCommand
-        
+
         # Register review command
         self._commands[AgentCommand.REVIEW_CHANGES] = ReviewCommand
-        
+
         # Register explain command
         self._commands[AgentCommand.EXPLAIN] = ExplainCommand
 
-        # TODO: Register other commands as they are implemented
-        # etc.
 
     def _ensure_db_initialized(self):
         """Ensure database tables are created."""

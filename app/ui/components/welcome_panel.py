@@ -14,7 +14,7 @@ class WelcomePanel:
     def create() -> Static:
         """Create the welcome panel widget."""
         welcome_text = Text()
-        welcome_text.append("🤖 Welcome to ", style="bold blue")
+        welcome_text.append("Welcome to ", style="bold blue")
         welcome_text.append("Boot-hn", style="bold cyan")
         welcome_text.append("\nThe CLI Agent Buddy", style="dim")
 
