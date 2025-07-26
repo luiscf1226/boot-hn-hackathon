@@ -206,6 +206,70 @@ class WelcomeApp(App):
         elif text:
             output.write("[red]Unknown command. Use /setup, /models, /init, /clean, /commit, /review-changes, /explain, or /clear[/red]")
 
+    async def _handle_api_key_input(self, output: RichLog, api_key: str) -> None:
+        """Handle API key input during setup."""
+        try:
+            # Allow empty input to cancel
+            if not api_key.strip():
+                output.write("[dim]Setup cancelled.[/dim]")
+                self._setup_waiting_for_api_key = False
+                input_widget = self.query_one("#input")
+                input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, /review-changes, /explain, or /clear"
+                return
+
+            # Process API key with setup command
+            result = await command_manager.execute_command("setup", api_key=api_key)
+
+            if result.get("prompt") == "api_key":
+                # API key validation failed, show error and try again
+                output.write(f"\n[red]{result['message']}[/red]")
+                instructions = result.get("instructions", [])
+                for instruction in instructions:
+                    output.write(f"[dim]• {instruction}[/dim]")
+
+                output.write("\n[yellow]Please enter a valid Gemini API key:[/yellow]")
+                input_widget = self.query_one("#input")
+                input_widget.placeholder = result.get("placeholder", "Paste your Gemini API key here...")
+                # Stay in the same state
+
+            elif result.get("success") and result.get("api_key_saved"):
+                # API key saved, now proceed to model selection
+                output.write(f"[green]{result['message']}[/green]")
+                self._setup_waiting_for_api_key = False
+
+                # Now get models for selection
+                model_result = await command_manager.execute_command("setup")
+                if model_result.get("prompt") == "model":
+                    output.write(f"\n[green]{model_result['message']}[/green]")
+                    self._models = model_result.get("available_models", [])
+
+                    for i, model in enumerate(self._models, 1):
+                        output.write(f"  {i}. {model}")
+
+                    # Set state to wait for model selection
+                    output.write("[yellow]Enter number (1-4):[/yellow]")
+                    self._setup_step = "model_selection"
+                    self._current_command = "setup"
+                    input_widget = self.query_one("#input")
+                    input_widget.placeholder = "Enter number (1-4)"
+                else:
+                    # Fallback if something goes wrong
+                    output.write(f"[green]API key saved! Run /setup again to select model.[/green]")
+                    self._reset_state()
+
+            else:
+                # Some other error
+                output.write(f"[red]{result.get('message', 'Unknown error')}[/red]")
+                self._setup_waiting_for_api_key = False
+                input_widget = self.query_one("#input")
+                input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, /review-changes, /explain, or /clear"
+
+        except Exception as e:
+            output.write(f"[red]Error processing API key: {e}[/red]")
+            self._setup_waiting_for_api_key = False
+            input_widget = self.query_one("#input")
+            input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, /review-changes, /explain, or /clear"
+
     async def _handle_setup(self, output: RichLog) -> None:
         """Handle setup command step by step."""
         try:
@@ -214,7 +278,19 @@ class WelcomeApp(App):
             # Call setup command
             result = await command_manager.execute_command("setup")
 
-            if result.get("prompt") == "model":
+            if result.get("prompt") == "api_key":
+                # Show API key prompt
+                output.write(f"\n[green]{result['message']}[/green]")
+                instructions = result.get("instructions", [])
+                for instruction in instructions:
+                    output.write(f"[dim]• {instruction}[/dim]")
+
+                output.write("\n[yellow]Enter your Gemini API key:[/yellow]")
+                self._setup_waiting_for_api_key = True
+                input_widget = self.query_one("#input")
+                input_widget.placeholder = result.get("placeholder", "Paste your Gemini API key here...")
+
+            elif result.get("prompt") == "model":
                 # Show models
                 output.write(f"\n[green]{result['message']}[/green]")
                 self._models = result.get("available_models", [])
@@ -228,14 +304,6 @@ class WelcomeApp(App):
                 self._current_command = "setup"
                 input_widget = self.query_one("#input")
                 input_widget.placeholder = "Enter number (1-4)"
-
-            elif result.get("prompt") == "api_key":
-                # Show API key prompt
-                output.write(f"\n[green]{result['message']}[/green]")
-                output.write("[yellow]Enter your GEMINI_API_KEY (or press Enter to cancel):[/yellow]")
-                self._setup_waiting_for_api_key = True
-                input_widget = self.query_one("#input")
-                input_widget.placeholder = "Enter your GEMINI_API_KEY"
 
             elif result.get("success"):
                 output.write(f"[green]{result['message']}[/green]")
@@ -1120,7 +1188,7 @@ class WelcomeApp(App):
         self._explain_input_type = None
         self._setup_waiting_for_api_key = False
         input_widget = self.query_one("#input")
-        input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, /review-changes, or /clear"
+        input_widget.placeholder = "Type /setup, /models, /init, /clean, /commit, /review-changes, /explain, or /clear"
 
 
 if __name__ == "__main__":
