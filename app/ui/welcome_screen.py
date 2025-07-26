@@ -234,8 +234,6 @@ class WelcomeApp(App):
 
     async def _animate_progress(self, output: RichLog, message: str, duration: float = 60.0):
         """Animate progress bar and show loading messages."""
-        self._show_progress(message)
-        
         # Loading messages to cycle through
         loading_messages = [
             "🔍 Analyzing project structure...",
@@ -253,6 +251,9 @@ class WelcomeApp(App):
         elapsed = 0.0
         step = 0.5  # Update every 0.5 seconds
         
+        # Show first loading message immediately
+        output.write(f"[dim]{loading_messages[0]}[/dim]")
+        
         try:
             while elapsed < duration:
                 # Update progress (simulate progress)
@@ -260,7 +261,7 @@ class WelcomeApp(App):
                 progress.update(progress=progress_value)
                 
                 # Cycle through loading messages
-                if elapsed > 0 and elapsed % 8 == 0:  # Change message every 8 seconds
+                if elapsed > 0 and elapsed % 6 == 0:  # Change message every 6 seconds
                     message_index = (message_index + 1) % len(loading_messages)
                     output.write(f"[dim]{loading_messages[message_index]}[/dim]")
                 
@@ -275,12 +276,21 @@ class WelcomeApp(App):
     async def _handle_init_path(self, output: RichLog, path: str) -> None:
         """Handle project path input for init command."""
         try:
+            # Show immediate feedback and progress bar
             output.write("[blue]🚀 Starting AI-powered documentation generation...[/blue]")
+            output.write("[yellow]⏳ Don't worry, it's not broken! We're calling the AI - this can take 30-60 seconds...[/yellow]")
             
-            # Start the progress animation and command execution in parallel
+            # Show progress bar immediately
+            self._show_progress("🤖 Initializing AI Documentation Generator...")
+            await asyncio.sleep(0.1)  # Small delay to ensure UI updates
+            
+            # Start progress animation
             progress_task = asyncio.create_task(
                 self._animate_progress(output, "🤖 AI Documentation Generator", 60.0)
             )
+            
+            # Give a moment for the UI to update before starting heavy work
+            await asyncio.sleep(0.5)
             
             # Execute init command
             command_task = asyncio.create_task(
@@ -295,6 +305,7 @@ class WelcomeApp(App):
                 # Complete progress bar
                 progress = self.query_one("#progress")
                 progress.update(progress=100)
+                output.write("[dim]🎉 AI processing completed![/dim]")
                 await asyncio.sleep(0.5)  # Brief pause to show completion
                 
             except Exception as e:
