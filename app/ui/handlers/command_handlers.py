@@ -14,6 +14,53 @@ class CommandHandlers:
     def __init__(self, progress_manager: ProgressManager):
         self.progress_manager = progress_manager
 
+    async def handle_unknown_command(self, output: RichLog, text: str) -> dict:
+        """Handle unknown command with AI assistance."""
+        try:
+            output.write("[blue] Let me help you with that...[/blue]")
+            output.write("[yellow]  Calling AI assistant - this may take a moment...[/yellow]")
+
+            # Show progress
+            self.progress_manager.show("AI Assistant")
+            await asyncio.sleep(0.1)
+
+            progress_task = asyncio.create_task(
+                self.progress_manager.animate(output, "AI Assistant", 30.0)
+            )
+
+            command_task = asyncio.create_task(
+                command_manager.execute_command("unknown", text=text)
+            )
+
+            try:
+                result = await command_task
+                progress_task.cancel()
+                self.progress_manager.progress.update(progress=100)
+                await asyncio.sleep(0.5)
+
+            except Exception as e:
+                progress_task.cancel()
+                raise e
+            finally:
+                self.progress_manager.hide()
+
+            if result.get("success"):
+                assistant_response = result.get("assistant_response", "")
+                output.write(f"\n[green]{result['message']}[/green]")
+                output.write(f"\n{assistant_response}")
+                output.write(f"\n[dim]AI Model: {result.get('ai_model', 'Unknown')} | Session: {result.get('session_id', 'Unknown')}[/dim]")
+            else:
+                error_msg = result.get("message", "Unknown error")
+                output.write(f"[red]{error_msg}[/red]")
+                if "API key" in error_msg:
+                    output.write("[dim]💡 Tip: Run /setup to configure your AI model[/dim]")
+
+            return result
+        except Exception as e:
+            self.progress_manager.hide()
+            output.write(f"[red] Error with AI assistant: {e}[/red]")
+            return {"success": False, "message": str(e)}
+
     async def handle_setup(self, output: RichLog) -> dict:
         """Handle setup command step by step."""
         try:

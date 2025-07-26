@@ -109,6 +109,17 @@ class ProgressManager:
                 "Analyzing project conventions...",
                 "Preparing project insights..."
             ]
+        elif "AI Assistant" in message:
+            return [
+                "Connecting to AI assistant...",
+                "Understanding your request...",
+                "Processing with AI model...",
+                "Generating helpful response...",
+                "Analyzing available commands...",
+                "Finding best suggestions...",
+                "Crafting personalized response...",
+                "Preparing helpful guidance..."
+            ]
         else:
             return [
                 "Analyzing project structure...",

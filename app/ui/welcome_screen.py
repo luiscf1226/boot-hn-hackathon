@@ -166,7 +166,13 @@ class WelcomeApp(App):
         elif text == "/clear":
             await self.action_clear_terminal()
         elif text:
-            output.write("[red]Unknown command. Use /setup, /models, /init, /clean, /commit, /review-changes, /explain, or /clear[/red]")
+            result = await self.command_handlers.handle_unknown_command(output, text)
+            await self._process_unknown_command_result(result, input_widget)
+    async def _process_unknown_command_result(self, result: dict, input_widget: Input) -> None:
+        """Process unknown command result."""
+        # Unknown command doesn't require special state management
+        # The AI response is already handled in the command handler
+        self._update_default_placeholder(input_widget)
 
     async def _process_setup_result(self, result: dict, input_widget: Input) -> None:
         """Process setup command result and update state."""

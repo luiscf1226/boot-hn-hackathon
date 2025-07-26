@@ -14,8 +14,8 @@ class CommandsPanel:
     def create() -> Static:
         """Create the commands panel widget."""
         commands_text = Text()
-        commands_text.append("📋 Available Commands:\n\n", style="bold yellow")
-        
+        commands_text.append("Available Commands:\n\n", style="bold yellow")
+
         commands = [
             ("/setup", "Configure AI model"),
             ("/models", "Display models (coming soon)"),
@@ -26,7 +26,7 @@ class CommandsPanel:
             ("/clean", "Database maintenance (clean/stats/vacuum)"),
             ("/clear", "Clear terminal output")
         ]
-        
+
         for command, description in commands:
             commands_text.append("• ", style="dim")
             commands_text.append(command, style="bold cyan")
