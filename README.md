@@ -6,7 +6,7 @@ AI-powered coding assistant with terminal UI for code analysis, commit messages,
 
 This is a hackathon project for boot.dev!
 
-First of all I want to be honest. I did use AI for the UI with copilot and tab. I had no experience with textual and toml for creating projects, but the project idea, commands and functions were an idea from a boot.dev course so it was easy to guide from that and write the code for commands and functions and AI call
+First of all I want to be honest ( Sorry Lane). I did use AI for the UI with claude and tab. I had no experience with textual and toml for creating projects, but the project idea, commands and functions were an idea from a boot.dev course so it was easy to guide from that and write the code for commands and functions and AI call
 
 I learned a lot recently on how to use classes and use patterns like builder and factory I hope you notice!
 
