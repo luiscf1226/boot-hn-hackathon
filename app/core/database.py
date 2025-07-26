@@ -58,6 +58,7 @@ def create_tables():
     engine = get_engine()
 
     # Import all models here to ensure they're registered
-    from app.models import user, agent
+    from app.models.user import User, UserSettings
+    from app.models.agent import AgentSession, AgentMessage
 
     Base.metadata.create_all(bind=engine)
