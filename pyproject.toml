@@ -61,9 +61,6 @@ Homepage = "https://github.com/yourusername/ai-coding-agent"
 Repository = "https://github.com/yourusername/ai-coding-agent"
 Issues = "https://github.com/yourusername/ai-coding-agent/issues"
 
-[tool.setuptools]
-packages = {find = {}}
-
 [tool.setuptools.packages.find]
 include = ["app*"]
 
