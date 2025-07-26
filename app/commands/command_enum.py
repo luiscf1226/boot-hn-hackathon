@@ -36,42 +36,42 @@ COMMAND_INFO: Dict[AgentCommand, CommandInfo] = {
     AgentCommand.SETUP: CommandInfo(
         AgentCommand.SETUP,
         "Configure the agent settings and preferences",
-        "Agent Configuration"
+        "Agent Configuration",
     ),
     AgentCommand.MODELS: CommandInfo(
         AgentCommand.MODELS,
         "Display database models and their relationships",
-        "Database Operations"
+        "Database Operations",
     ),
     AgentCommand.INIT: CommandInfo(
         AgentCommand.INIT,
         "Create project documentation, README, and save context",
-        "Project Initialization"
+        "Project Initialization",
     ),
     AgentCommand.REVIEW_CHANGES: CommandInfo(
         AgentCommand.REVIEW_CHANGES,
         "Get git diff and perform code review analysis",
-        "Code Review"
+        "Code Review",
     ),
     AgentCommand.EXPLAIN: CommandInfo(
         AgentCommand.EXPLAIN,
         "Explain code from file or pasted content",
-        "Code Analysis"
+        "Code Analysis",
     ),
     AgentCommand.COMMIT: CommandInfo(
         AgentCommand.COMMIT,
         "Generate intelligent commit messages based on changes",
-        "Version Control"
+        "Version Control",
     ),
     AgentCommand.CLEAN: CommandInfo(
         AgentCommand.CLEAN,
         "Delete SQLite database and clean up temporary files",
-        "Maintenance"
+        "Maintenance",
     ),
     AgentCommand.UNKNOWN_COMMAND: CommandInfo(
         AgentCommand.UNKNOWN_COMMAND,
         "Handle unrecognized input with AI assistance",
-        "AI Assistant"
+        "AI Assistant",
     ),
 }
 

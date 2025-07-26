@@ -18,7 +18,9 @@ class CommandHandlers:
         """Handle unknown command with AI assistance."""
         try:
             output.write("[blue] Let me help you with that...[/blue]")
-            output.write("[yellow]  Calling AI assistant - this may take a moment...[/yellow]")
+            output.write(
+                "[yellow]  Calling AI assistant - this may take a moment...[/yellow]"
+            )
 
             # Show progress
             self.progress_manager.show("AI Assistant")
@@ -48,12 +50,16 @@ class CommandHandlers:
                 assistant_response = result.get("assistant_response", "")
                 output.write(f"\n[green]{result['message']}[/green]")
                 output.write(f"\n{assistant_response}")
-                output.write(f"\n[dim]AI Model: {result.get('ai_model', 'Unknown')} | Session: {result.get('session_id', 'Unknown')}[/dim]")
+                output.write(
+                    f"\n[dim]AI Model: {result.get('ai_model', 'Unknown')} | Session: {result.get('session_id', 'Unknown')}[/dim]"
+                )
             else:
                 error_msg = result.get("message", "Unknown error")
                 output.write(f"[red]{error_msg}[/red]")
                 if "API key" in error_msg:
-                    output.write("[dim]💡 Tip: Run /setup to configure your AI model[/dim]")
+                    output.write(
+                        "[dim]💡 Tip: Run /setup to configure your AI model[/dim]"
+                    )
 
             return result
         except Exception as e:
@@ -103,10 +109,14 @@ class CommandHandlers:
                 current_model = result.get("current_model", "")
 
                 for i, model in enumerate(models, 1):
-                    current_indicator = " [dim](current)[/dim]" if model == current_model else ""
+                    current_indicator = (
+                        " [dim](current)[/dim]" if model == current_model else ""
+                    )
                     output.write(f"  {i}. {model}{current_indicator}")
 
-                output.write("[yellow]Enter number to change model (or press Enter to cancel):[/yellow]")
+                output.write(
+                    "[yellow]Enter number to change model (or press Enter to cancel):[/yellow]"
+                )
 
             elif result.get("success"):
                 output.write(f"[green]{result['message']}[/green]")
@@ -126,7 +136,9 @@ class CommandHandlers:
 
             if result.get("prompt") == "project_path":
                 output.write(f"\n[green]{result['message']}[/green]")
-                output.write("[yellow]Enter project path (or '.' for current directory):[/yellow]")
+                output.write(
+                    "[yellow]Enter project path (or '.' for current directory):[/yellow]"
+                )
 
             elif result.get("success"):
                 output.write(f"[green]{result['message']}[/green]")
@@ -149,9 +161,13 @@ class CommandHandlers:
                 actions = result.get("actions", [])
 
                 for i, action in enumerate(actions, 1):
-                    output.write(f"  {i}. [bold]{action['key']}[/bold] - {action['desc']}")
+                    output.write(
+                        f"  {i}. [bold]{action['key']}[/bold] - {action['desc']}"
+                    )
 
-                output.write("[yellow]Enter action number or name (clean/stats/vacuum):[/yellow]")
+                output.write(
+                    "[yellow]Enter action number or name (clean/stats/vacuum):[/yellow]"
+                )
 
             elif result.get("success"):
                 output.write(f"[green]{result['message']}[/green]")
@@ -166,14 +182,20 @@ class CommandHandlers:
     async def handle_commit(self, output: RichLog) -> dict:
         """Handle commit command with progress animation."""
         try:
-            output.write("[blue]Analyzing git repository and generating commit message...[/blue]")
-            output.write("[yellow]Don't worry, it's not broken! We're calling the AI - this can take 30-60 seconds...[/yellow]")
+            output.write(
+                "[blue]Analyzing git repository and generating commit message...[/blue]"
+            )
+            output.write(
+                "[yellow]Don't worry, it's not broken! We're calling the AI - this can take 30-60 seconds...[/yellow]"
+            )
 
             self.progress_manager.show("Initializing AI Commit Message Generator...")
             await asyncio.sleep(0.1)
 
             progress_task = asyncio.create_task(
-                self.progress_manager.animate(output, "AI Commit Message Generator", 45.0)
+                self.progress_manager.animate(
+                    output, "AI Commit Message Generator", 45.0
+                )
             )
 
             command_task = asyncio.create_task(
@@ -197,7 +219,9 @@ class CommandHandlers:
                 commit_message = result.get("commit_message", "")
                 output.write(f"\n[green]{result['message']}[/green]")
                 output.write(f'[yellow]"{commit_message}"[/yellow]')
-                output.write(f"[dim]Generated by: {result.get('ai_model', 'Unknown')} (Session: {result.get('session_id', 'Unknown')})[/dim]")
+                output.write(
+                    f"[dim]Generated by: {result.get('ai_model', 'Unknown')} (Session: {result.get('session_id', 'Unknown')})[/dim]"
+                )
 
                 output.write("\n[yellow]Execute this commit? (yes/no/edit):[/yellow]")
                 output.write("[dim]• yes - Execute the commit[/dim]")
@@ -219,7 +243,9 @@ class CommandHandlers:
         """Handle review-changes command with progress animation."""
         try:
             output.write("[blue]Running AI code review...[/blue]")
-            output.write("[yellow]Don't worry, it's not broken! We're calling the AI - this can take 30-60 seconds...[/yellow]")
+            output.write(
+                "[yellow]Don't worry, it's not broken! We're calling the AI - this can take 30-60 seconds...[/yellow]"
+            )
 
             self.progress_manager.show("Initializing AI Code Review...")
             await asyncio.sleep(0.1)
@@ -249,9 +275,13 @@ class CommandHandlers:
                 review_content = result.get("review_content", "")
                 output.write(f"\n[green]{result['message']}[/green]")
                 output.write(f"\n{review_content}")
-                output.write(f"[dim]Generated by: {result.get('ai_model', 'Unknown')} (Session: {result.get('session_id', 'Unknown')})[/dim]")
+                output.write(
+                    f"[dim]Generated by: {result.get('ai_model', 'Unknown')} (Session: {result.get('session_id', 'Unknown')})[/dim]"
+                )
 
-                output.write("\n[yellow]Save this review to database? (yes/no):[/yellow]")
+                output.write(
+                    "\n[yellow]Save this review to database? (yes/no):[/yellow]"
+                )
                 output.write("[dim]• yes - Save review for future reference[/dim]")
                 output.write("[dim]• no - Discard review[/dim]")
 
@@ -277,9 +307,13 @@ class CommandHandlers:
                 options = result.get("data", {}).get("options", [])
 
                 for i, option in enumerate(options, 1):
-                    output.write(f"  {i}. [bold]{option['key']}[/bold] - {option['desc']}")
+                    output.write(
+                        f"  {i}. [bold]{option['key']}[/bold] - {option['desc']}"
+                    )
 
-                output.write("\n[yellow]Choose an option (1-3) or type your choice:[/yellow]")
+                output.write(
+                    "\n[yellow]Choose an option (1-3) or type your choice:[/yellow]"
+                )
                 output.write("[dim]• paste - Paste code to analyze[/dim]")
                 output.write("[dim]• file <path> - Analyze specific file[/dim]")
                 output.write("[dim]• current - Analyze current directory[/dim]")
@@ -294,17 +328,21 @@ class CommandHandlers:
             output.write(f"[red]Error starting explain: {e}[/red]")
             return {"success": False, "message": str(e)}
 
-    async def execute_explain_with_progress(self, output: RichLog, action: str, **kwargs) -> dict:
+    async def execute_explain_with_progress(
+        self, output: RichLog, action: str, **kwargs
+    ) -> dict:
         """Execute explain command with progress animation."""
         try:
             analysis_type = {
                 "analyze_code": "Code Analysis",
                 "analyze_file": "File Analysis",
-                "analyze_current_dir": "Directory Analysis"
+                "analyze_current_dir": "Directory Analysis",
             }.get(action, "Analysis")
 
             output.write(f"[blue]Analyzing...[/blue]")
-            output.write("[yellow]Don't worry, it's not broken! We're calling the AI - this can take 30-60 seconds...[/yellow]")
+            output.write(
+                "[yellow]Don't worry, it's not broken! We're calling the AI - this can take 30-60 seconds...[/yellow]"
+            )
 
             self.progress_manager.show(f"AI {analysis_type}")
             await asyncio.sleep(0.1)
@@ -336,19 +374,29 @@ class CommandHandlers:
 
                 if action == "analyze_file":
                     file_name = result.get("file_name", kwargs.get("file_path", ""))
-                    output.write(f"\n[dim]File: {file_name} | Size: {result.get('file_size', 0)} chars | AI Model: {result.get('ai_model', 'Unknown')}[/dim]")
+                    output.write(
+                        f"\n[dim]File: {file_name} | Size: {result.get('file_size', 0)} chars | AI Model: {result.get('ai_model', 'Unknown')}[/dim]"
+                    )
                 elif action == "analyze_current_dir":
                     directory_path = result.get("directory_path", "")
-                    output.write(f"\n[dim]Directory: {directory_path} | AI Model: {result.get('ai_model', 'Unknown')}[/dim]")
+                    output.write(
+                        f"\n[dim]Directory: {directory_path} | AI Model: {result.get('ai_model', 'Unknown')}[/dim]"
+                    )
                 else:
-                    output.write(f"\n[dim]AI Model: {result.get('ai_model', 'Unknown')} | Session: {result.get('session_id', 'Unknown')}[/dim]")
+                    output.write(
+                        f"\n[dim]AI Model: {result.get('ai_model', 'Unknown')} | Session: {result.get('session_id', 'Unknown')}[/dim]"
+                    )
             else:
                 error_msg = result.get("message", "Unknown error")
                 output.write(f"[red]Analysis failed: {error_msg}[/red]")
                 if "API key" in error_msg:
-                    output.write("[dim]Tip: Run /setup to configure your AI model[/dim]")
+                    output.write(
+                        "[dim]Tip: Run /setup to configure your AI model[/dim]"
+                    )
                 elif "not found" in error_msg.lower():
-                    output.write("[dim]Tip: Use absolute or relative paths like ./file.py or /full/path/file.py[/dim]")
+                    output.write(
+                        "[dim]Tip: Use absolute or relative paths like ./file.py or /full/path/file.py[/dim]"
+                    )
 
             return result
         except Exception as e:
@@ -356,17 +404,23 @@ class CommandHandlers:
             output.write(f"[red]Error during analysis: {e}[/red]")
             return {"success": False, "message": str(e)}
 
-    async def execute_init_with_progress(self, output: RichLog, project_path: str) -> dict:
+    async def execute_init_with_progress(
+        self, output: RichLog, project_path: str
+    ) -> dict:
         """Execute init command with progress animation."""
         try:
             output.write("[blue]Starting AI-powered documentation generation...[/blue]")
-            output.write("[yellow]Don't worry, it's not broken! We're calling the AI - this can take 30-60 seconds...[/yellow]")
+            output.write(
+                "[yellow]Don't worry, it's not broken! We're calling the AI - this can take 30-60 seconds...[/yellow]"
+            )
 
             self.progress_manager.show("Initializing AI Documentation Generator...")
             await asyncio.sleep(0.1)
 
             progress_task = asyncio.create_task(
-                self.progress_manager.animate(output, "AI Documentation Generator", 60.0)
+                self.progress_manager.animate(
+                    output, "AI Documentation Generator", 60.0
+                )
             )
 
             await asyncio.sleep(0.5)
@@ -391,7 +445,7 @@ class CommandHandlers:
             if result.get("success"):
                 output.write(f"[green]{result['message']}[/green]")
             else:
-                error_msg = result.get('message', 'Unknown error')
+                error_msg = result.get("message", "Unknown error")
                 output.write(f"[red]{error_msg}[/red]")
 
                 if "Details:" in error_msg:
@@ -404,5 +458,7 @@ class CommandHandlers:
         except Exception as e:
             self.progress_manager.hide()
             output.write(f"[red]Error during initialization: {e}[/red]")
-            output.write("[dim]Tip: Try running /setup first to configure your API key[/dim]")
+            output.write(
+                "[dim]Tip: Try running /setup first to configure your API key[/dim]"
+            )
             return {"success": False, "message": str(e)}

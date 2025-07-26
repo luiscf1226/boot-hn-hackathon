@@ -42,7 +42,7 @@ class ExplainCommand(BaseCommand):
                     {"key": "file", "desc": "Analyze a specific file"},
                     {"key": "current", "desc": "Analyze current directory structure"},
                 ]
-            }
+            },
         }
 
     async def _analyze_code(self, code: str) -> Dict[str, Any]:
@@ -54,8 +54,9 @@ class ExplainCommand(BaseCommand):
             # Check if user has API key configured
             user = User.get_or_create_default_user(self.db)
             if not user.gemini_api_key:
-                return CommandResult(False,
-                    "No API key found. Please run /setup first to configure your Gemini API key for AI code explanation."
+                return CommandResult(
+                    False,
+                    "No API key found. Please run /setup first to configure your Gemini API key for AI code explanation.",
                 ).to_dict()
 
             # Initialize AI agent
@@ -63,7 +64,9 @@ class ExplainCommand(BaseCommand):
                 agent = Agent(self.db)
                 agent.start_new_session("Code Explanation")
             except Exception as e:
-                return CommandResult(False, f"Failed to initialize AI agent: {str(e)}").to_dict()
+                return CommandResult(
+                    False, f"Failed to initialize AI agent: {str(e)}"
+                ).to_dict()
 
             # Load AI prompts from files
             system_prompt = load_prompt("explain_code_system")
@@ -74,11 +77,14 @@ class ExplainCommand(BaseCommand):
                 ai_response = await agent.send_system_message(
                     system_prompt=system_prompt,
                     user_message=user_message,
-                    save_to_db=True
+                    save_to_db=True,
                 )
 
                 if not ai_response["success"]:
-                    return CommandResult(False, f"AI code explanation failed: {ai_response.get('error', 'Unknown error')}").to_dict()
+                    return CommandResult(
+                        False,
+                        f"AI code explanation failed: {ai_response.get('error', 'Unknown error')}",
+                    ).to_dict()
 
             except Exception as e:
                 return CommandResult(False, f"AI service error: {str(e)}").to_dict()
@@ -94,13 +100,16 @@ class ExplainCommand(BaseCommand):
                 "code_analyzed": code[:200] + "..." if len(code) > 200 else code,
                 "ai_model": ai_response.get("model", "Unknown"),
                 "session_id": ai_response.get("session_id", "Unknown"),
-                "analysis_type": "pasted_code"
+                "analysis_type": "pasted_code",
             }
 
         except Exception as e:
             import traceback
+
             error_detail = traceback.format_exc()
-            return CommandResult(False, f"Code analysis failed: {str(e)}\n\nDetails: {error_detail}").to_dict()
+            return CommandResult(
+                False, f"Code analysis failed: {str(e)}\n\nDetails: {error_detail}"
+            ).to_dict()
 
     async def _analyze_file(self, file_path: str) -> Dict[str, Any]:
         """Analyze a specific file."""
@@ -118,25 +127,34 @@ class ExplainCommand(BaseCommand):
 
             # Check if it's actually a file
             if not os.path.isfile(file_path):
-                return CommandResult(False, f"Path is not a file: {file_path}").to_dict()
+                return CommandResult(
+                    False, f"Path is not a file: {file_path}"
+                ).to_dict()
 
             # Read file content
             try:
-                with open(file_path, 'r', encoding='utf-8') as f:
+                with open(file_path, "r", encoding="utf-8") as f:
                     file_content = f.read()
             except UnicodeDecodeError:
                 # Try with different encoding
                 try:
-                    with open(file_path, 'r', encoding='latin-1') as f:
+                    with open(file_path, "r", encoding="latin-1") as f:
                         file_content = f.read()
                 except Exception as e:
-                    return CommandResult(False, f"Could not read file {file_path}: {str(e)}").to_dict()
+                    return CommandResult(
+                        False, f"Could not read file {file_path}: {str(e)}"
+                    ).to_dict()
             except Exception as e:
-                return CommandResult(False, f"Could not read file {file_path}: {str(e)}").to_dict()
+                return CommandResult(
+                    False, f"Could not read file {file_path}: {str(e)}"
+                ).to_dict()
 
             # Check file size (limit to reasonable size for analysis)
             if len(file_content) > 50000:  # 50KB limit
-                return CommandResult(False, f"File too large for analysis (max 50KB). File size: {len(file_content)} characters").to_dict()
+                return CommandResult(
+                    False,
+                    f"File too large for analysis (max 50KB). File size: {len(file_content)} characters",
+                ).to_dict()
 
             # Get file info
             file_name = os.path.basename(file_path)
@@ -145,8 +163,9 @@ class ExplainCommand(BaseCommand):
             # Check if user has API key configured
             user = User.get_or_create_default_user(self.db)
             if not user.gemini_api_key:
-                return CommandResult(False,
-                    "No API key found. Please run /setup first to configure your Gemini API key for AI code explanation."
+                return CommandResult(
+                    False,
+                    "No API key found. Please run /setup first to configure your Gemini API key for AI code explanation.",
                 ).to_dict()
 
             # Initialize AI agent
@@ -154,27 +173,34 @@ class ExplainCommand(BaseCommand):
                 agent = Agent(self.db)
                 agent.start_new_session(f"File Analysis: {file_name}")
             except Exception as e:
-                return CommandResult(False, f"Failed to initialize AI agent: {str(e)}").to_dict()
+                return CommandResult(
+                    False, f"Failed to initialize AI agent: {str(e)}"
+                ).to_dict()
 
             # Load AI prompts from files
             system_prompt = load_prompt("explain_file_system")
-            user_message = format_prompt("explain_file_user", 
-                                       file_path=file_path,
-                                       file_name=file_name,
-                                       file_extension=file_extension,
-                                       file_size=len(file_content),
-                                       file_content=file_content)
+            user_message = format_prompt(
+                "explain_file_user",
+                file_path=file_path,
+                file_name=file_name,
+                file_extension=file_extension,
+                file_size=len(file_content),
+                file_content=file_content,
+            )
 
             # Send to AI
             try:
                 ai_response = await agent.send_system_message(
                     system_prompt=system_prompt,
                     user_message=user_message,
-                    save_to_db=True
+                    save_to_db=True,
                 )
 
                 if not ai_response["success"]:
-                    return CommandResult(False, f"AI file analysis failed: {ai_response.get('error', 'Unknown error')}").to_dict()
+                    return CommandResult(
+                        False,
+                        f"AI file analysis failed: {ai_response.get('error', 'Unknown error')}",
+                    ).to_dict()
 
             except Exception as e:
                 return CommandResult(False, f"AI service error: {str(e)}").to_dict()
@@ -192,13 +218,16 @@ class ExplainCommand(BaseCommand):
                 "file_size": len(file_content),
                 "ai_model": ai_response.get("model", "Unknown"),
                 "session_id": ai_response.get("session_id", "Unknown"),
-                "analysis_type": "file_analysis"
+                "analysis_type": "file_analysis",
             }
 
         except Exception as e:
             import traceback
+
             error_detail = traceback.format_exc()
-            return CommandResult(False, f"File analysis failed: {str(e)}\n\nDetails: {error_detail}").to_dict()
+            return CommandResult(
+                False, f"File analysis failed: {str(e)}\n\nDetails: {error_detail}"
+            ).to_dict()
 
     async def _analyze_current_directory(self) -> Dict[str, Any]:
         """Analyze current directory structure."""
@@ -214,8 +243,9 @@ class ExplainCommand(BaseCommand):
             # Check if user has API key configured
             user = User.get_or_create_default_user(self.db)
             if not user.gemini_api_key:
-                return CommandResult(False,
-                    "No API key found. Please run /setup first to configure your Gemini API key for AI code explanation."
+                return CommandResult(
+                    False,
+                    "No API key found. Please run /setup first to configure your Gemini API key for AI code explanation.",
                 ).to_dict()
 
             # Initialize AI agent
@@ -224,26 +254,33 @@ class ExplainCommand(BaseCommand):
                 project_name = os.path.basename(current_dir)
                 agent.start_new_session(f"Directory Analysis: {project_name}")
             except Exception as e:
-                return CommandResult(False, f"Failed to initialize AI agent: {str(e)}").to_dict()
+                return CommandResult(
+                    False, f"Failed to initialize AI agent: {str(e)}"
+                ).to_dict()
 
             # Load AI prompts from files
             system_prompt = load_prompt("explain_directory_system")
-            user_message = format_prompt("explain_directory_user",
-                                       current_dir=current_dir,
-                                       project_name=os.path.basename(current_dir),
-                                       dir_structure=dir_structure,
-                                       key_files=key_files)
+            user_message = format_prompt(
+                "explain_directory_user",
+                current_dir=current_dir,
+                project_name=os.path.basename(current_dir),
+                dir_structure=dir_structure,
+                key_files=key_files,
+            )
 
             # Send to AI
             try:
                 ai_response = await agent.send_system_message(
                     system_prompt=system_prompt,
                     user_message=user_message,
-                    save_to_db=True
+                    save_to_db=True,
                 )
 
                 if not ai_response["success"]:
-                    return CommandResult(False, f"AI directory analysis failed: {ai_response.get('error', 'Unknown error')}").to_dict()
+                    return CommandResult(
+                        False,
+                        f"AI directory analysis failed: {ai_response.get('error', 'Unknown error')}",
+                    ).to_dict()
 
             except Exception as e:
                 return CommandResult(False, f"AI service error: {str(e)}").to_dict()
@@ -260,15 +297,20 @@ class ExplainCommand(BaseCommand):
                 "directory_structure": dir_structure,
                 "ai_model": ai_response.get("model", "Unknown"),
                 "session_id": ai_response.get("session_id", "Unknown"),
-                "analysis_type": "directory_analysis"
+                "analysis_type": "directory_analysis",
             }
 
         except Exception as e:
             import traceback
-            error_detail = traceback.format_exc()
-            return CommandResult(False, f"Directory analysis failed: {str(e)}\n\nDetails: {error_detail}").to_dict()
 
-    def _get_directory_structure(self, path: str, max_depth: int = 3, current_depth: int = 0) -> str:
+            error_detail = traceback.format_exc()
+            return CommandResult(
+                False, f"Directory analysis failed: {str(e)}\n\nDetails: {error_detail}"
+            ).to_dict()
+
+    def _get_directory_structure(
+        self, path: str, max_depth: int = 3, current_depth: int = 0
+    ) -> str:
         """Get directory structure as a string."""
         if current_depth >= max_depth:
             return ""
@@ -278,7 +320,13 @@ class ExplainCommand(BaseCommand):
             items = sorted(os.listdir(path))
             for item in items:
                 # Skip hidden files and common unimportant directories
-                if item.startswith('.') or item in ['__pycache__', 'node_modules', '.git', 'venv', 'env']:
+                if item.startswith(".") or item in [
+                    "__pycache__",
+                    "node_modules",
+                    ".git",
+                    "venv",
+                    "env",
+                ]:
                     continue
 
                 item_path = os.path.join(path, item)
@@ -287,7 +335,9 @@ class ExplainCommand(BaseCommand):
                 if os.path.isdir(item_path):
                     structure.append(f"{indent}{item}/")
                     if current_depth < max_depth - 1:
-                        sub_structure = self._get_directory_structure(item_path, max_depth, current_depth + 1)
+                        sub_structure = self._get_directory_structure(
+                            item_path, max_depth, current_depth + 1
+                        )
                         if sub_structure:
                             structure.append(sub_structure)
                 else:
@@ -301,13 +351,30 @@ class ExplainCommand(BaseCommand):
         """Identify key project files."""
         key_files = []
         important_files = [
-            'README.md', 'README.txt', 'README',
-            'package.json', 'requirements.txt', 'Pipfile', 'setup.py', 'pyproject.toml',
-            'Dockerfile', 'docker-compose.yml', 'docker-compose.yaml',
-            'Makefile', '.gitignore', 'LICENSE', 'LICENSE.txt',
-            'main.py', 'app.py', 'index.js', 'index.html',
-            'config.py', 'settings.py', 'config.json',
-            '.env.example', 'env.example'
+            "README.md",
+            "README.txt",
+            "README",
+            "package.json",
+            "requirements.txt",
+            "Pipfile",
+            "setup.py",
+            "pyproject.toml",
+            "Dockerfile",
+            "docker-compose.yml",
+            "docker-compose.yaml",
+            "Makefile",
+            ".gitignore",
+            "LICENSE",
+            "LICENSE.txt",
+            "main.py",
+            "app.py",
+            "index.js",
+            "index.html",
+            "config.py",
+            "settings.py",
+            "config.json",
+            ".env.example",
+            "env.example",
         ]
 
         try:
@@ -322,11 +389,18 @@ class ExplainCommand(BaseCommand):
                         key_files.append(f"- {rel_path}")
 
                 # Stop descending into hidden or unimportant directories
-                dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['__pycache__', 'node_modules', 'venv', 'env']]
+                dirs[:] = [
+                    d
+                    for d in dirs
+                    if not d.startswith(".")
+                    and d not in ["__pycache__", "node_modules", "venv", "env"]
+                ]
         except Exception:
             pass
 
-        return "\n".join(key_files) if key_files else "- No standard project files found"
+        return (
+            "\n".join(key_files) if key_files else "- No standard project files found"
+        )
 
     def get_help(self) -> str:
         """Get help text for the explain command."""

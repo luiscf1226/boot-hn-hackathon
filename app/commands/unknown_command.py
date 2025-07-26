@@ -25,8 +25,9 @@ class UnknownCommand(BaseCommand):
             # Check if user has API key configured
             user = User.get_or_create_default_user(self.db)
             if not user.gemini_api_key:
-                return CommandResult(False,
-                    "I'd love to help, but I need an API key configured first. Please run /setup to configure your Gemini API key so I can assist you!"
+                return CommandResult(
+                    False,
+                    "I'd love to help, but I need an API key configured first. Please run /setup to configure your Gemini API key so I can assist you!",
                 ).to_dict()
 
             # Initialize AI agent
@@ -34,7 +35,9 @@ class UnknownCommand(BaseCommand):
                 agent = Agent(self.db)
                 agent.start_new_session("General Assistant")
             except Exception as e:
-                return CommandResult(False, f"Failed to initialize AI agent: {str(e)}").to_dict()
+                return CommandResult(
+                    False, f"Failed to initialize AI agent: {str(e)}"
+                ).to_dict()
 
             # Create system prompt for the CLI agent
             system_prompt = """You are Boot-hn, a helpful CLI coding agent and assistant. A user has typed something that doesn't match any of the available commands, so you should respond helpfully and guide them.
@@ -74,11 +77,14 @@ Please respond helpfully to this user input. If it seems like they want to use a
                 ai_response = await agent.send_system_message(
                     system_prompt=system_prompt,
                     user_message=user_message,
-                    save_to_db=True
+                    save_to_db=True,
                 )
 
                 if not ai_response["success"]:
-                    return CommandResult(False, f"AI assistant failed: {ai_response.get('error', 'Unknown error')}").to_dict()
+                    return CommandResult(
+                        False,
+                        f"AI assistant failed: {ai_response.get('error', 'Unknown error')}",
+                    ).to_dict()
 
             except Exception as e:
                 return CommandResult(False, f"AI service error: {str(e)}").to_dict()
@@ -94,13 +100,16 @@ Please respond helpfully to this user input. If it seems like they want to use a
                 "user_input": text,
                 "ai_model": ai_response.get("model", "Unknown"),
                 "session_id": ai_response.get("session_id", "Unknown"),
-                "response_type": "ai_assistant"
+                "response_type": "ai_assistant",
             }
 
         except Exception as e:
             import traceback
+
             error_detail = traceback.format_exc()
-            return CommandResult(False, f"Assistant failed: {str(e)}\n\nDetails: {error_detail}").to_dict()
+            return CommandResult(
+                False, f"Assistant failed: {str(e)}\n\nDetails: {error_detail}"
+            ).to_dict()
 
     def get_help(self) -> str:
         """Get help text for the unknown command."""

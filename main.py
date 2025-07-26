@@ -7,6 +7,7 @@ Starts the Textual UI welcome screen.
 import sys
 from pathlib import Path
 
+
 def main():
     """Main entry point for the application."""
     try:
@@ -32,6 +33,7 @@ def main():
     except Exception as e:
         print(f"Error starting the application: {e}")
         import traceback
+
         print("Full traceback:")
         traceback.print_exc()
         sys.exit(1)

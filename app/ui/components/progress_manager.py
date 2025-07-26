@@ -59,7 +59,7 @@ class ProgressManager:
                 "AI is crafting commit message...",
                 "Following git best practices...",
                 "Formatting commit message...",
-                "Preparing commit preview..."
+                "Preparing commit preview...",
             ]
         elif "Review" in message:
             return [
@@ -71,7 +71,7 @@ class ProgressManager:
                 "Identifying potential issues...",
                 "Generating improvement suggestions...",
                 "Evaluating test coverage needs...",
-                "Preparing comprehensive review..."
+                "Preparing comprehensive review...",
             ]
         elif "Code Analysis" in message:
             return [
@@ -83,7 +83,7 @@ class ProgressManager:
                 "Breaking down algorithms...",
                 "Identifying learning opportunities...",
                 "Checking for best practices...",
-                "Preparing educational explanation..."
+                "Preparing educational explanation...",
             ]
         elif "File Analysis" in message:
             return [
@@ -95,7 +95,7 @@ class ProgressManager:
                 "Extracting key concepts...",
                 "Finding learning insights...",
                 "Analyzing code quality...",
-                "Preparing comprehensive explanation..."
+                "Preparing comprehensive explanation...",
             ]
         elif "Directory Analysis" in message:
             return [
@@ -107,7 +107,7 @@ class ProgressManager:
                 "Identifying technology stack...",
                 "Finding architectural patterns...",
                 "Analyzing project conventions...",
-                "Preparing project insights..."
+                "Preparing project insights...",
             ]
         elif "AI Assistant" in message:
             return [
@@ -118,7 +118,7 @@ class ProgressManager:
                 "Analyzing available commands...",
                 "Finding best suggestions...",
                 "Crafting personalized response...",
-                "Preparing helpful guidance..."
+                "Preparing helpful guidance...",
             ]
         else:
             return [
@@ -129,5 +129,5 @@ class ProgressManager:
                 "AI is writing documentation...",
                 "Generating README.md...",
                 "Formatting documentation...",
-                "Saving files..."
+                "Saving files...",
             ]

@@ -6,7 +6,11 @@ from typing import Dict, Any
 from sqlalchemy.orm import Session
 
 from app.commands.base import BaseCommand, CommandResult
-from app.functions.database_operations import clean_database, get_database_stats, vacuum_database
+from app.functions.database_operations import (
+    clean_database,
+    get_database_stats,
+    vacuum_database,
+)
 
 
 class CleanCommand(BaseCommand):
@@ -26,10 +30,16 @@ class CleanCommand(BaseCommand):
                     "prompt": "action",
                     "message": "What would you like to do?",
                     "actions": [
-                        {"key": "clean", "desc": "Clean database (drop all tables and recreate)"},
+                        {
+                            "key": "clean",
+                            "desc": "Clean database (drop all tables and recreate)",
+                        },
                         {"key": "stats", "desc": "Show database statistics"},
-                        {"key": "vacuum", "desc": "Vacuum database (optimize and reclaim space)"}
-                    ]
+                        {
+                            "key": "vacuum",
+                            "desc": "Vacuum database (optimize and reclaim space)",
+                        },
+                    ],
                 }
 
             if action == "clean":
@@ -45,7 +55,10 @@ class CleanCommand(BaseCommand):
                 return CommandResult(True, result).to_dict()
 
             else:
-                return CommandResult(False, f"Unknown action: {action}. Use 'clean', 'stats', or 'vacuum'").to_dict()
+                return CommandResult(
+                    False,
+                    f"Unknown action: {action}. Use 'clean', 'stats', or 'vacuum'",
+                ).to_dict()
 
         except Exception as e:
             return CommandResult(False, f"Clean command failed: {str(e)}").to_dict()

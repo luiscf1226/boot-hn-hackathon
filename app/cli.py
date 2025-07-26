@@ -21,6 +21,7 @@ def main():
 
         # Import and run the main application
         from main import main as run_app
+
         run_app()
 
     except KeyboardInterrupt:
@@ -34,6 +35,7 @@ def main():
     except Exception as e:
         print(f"❌ Error starting the application: {e}")
         import traceback
+
         print("Full traceback:")
         traceback.print_exc()
         sys.exit(1)

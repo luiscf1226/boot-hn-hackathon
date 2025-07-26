@@ -17,6 +17,7 @@ from app.commands.explain_command import ExplainCommand
 from app.commands.unknown_command import UnknownCommand
 from app.core.database import get_db, create_tables
 
+
 class CommandManager:
     """Manages command execution and routing."""
 
@@ -51,7 +52,6 @@ class CommandManager:
         # Register unknown command
         self._commands[AgentCommand.UNKNOWN_COMMAND] = UnknownCommand
 
-
     def _ensure_db_initialized(self):
         """Ensure database tables are created."""
         if not self._db_initialized:
@@ -63,7 +63,9 @@ class CommandManager:
                 # Continue anyway - maybe the database is already initialized
                 self._db_initialized = True
 
-    async def execute_command(self, command_name: str, *args, **kwargs) -> Dict[str, Any]:
+    async def execute_command(
+        self, command_name: str, *args, **kwargs
+    ) -> Dict[str, Any]:
         """Execute a command by name."""
         try:
             # Get command enum
@@ -77,7 +79,7 @@ class CommandManager:
                 return {
                     "success": False,
                     "message": f"Unknown command: {command_name}",
-                    "data": {"available_commands": [cmd.value for cmd in AgentCommand]}
+                    "data": {"available_commands": [cmd.value for cmd in AgentCommand]},
                 }
 
             # Check if command is registered
@@ -85,7 +87,7 @@ class CommandManager:
                 return {
                     "success": False,
                     "message": f"Command '{command_name}' is not implemented yet",
-                    "data": {}
+                    "data": {},
                 }
 
             # Initialize database if needed
@@ -111,7 +113,7 @@ class CommandManager:
             return {
                 "success": False,
                 "message": f"Error executing command: {str(e)}",
-                "data": {}
+                "data": {},
             }
 
     def get_available_commands(self) -> list:

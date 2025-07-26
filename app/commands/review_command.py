@@ -13,7 +13,7 @@ from app.functions.git_operations import (
     check_git_repository,
     get_all_changes_diff,
     get_git_status,
-    get_recent_commits
+    get_recent_commits,
 )
 
 
@@ -34,8 +34,9 @@ class ReviewCommand(BaseCommand):
             # Check if user has API key configured
             user = User.get_or_create_default_user(self.db)
             if not user.gemini_api_key:
-                return CommandResult(False,
-                    "No API key found. Please run /setup first to configure your Gemini API key for AI code review."
+                return CommandResult(
+                    False,
+                    "No API key found. Please run /setup first to configure your Gemini API key for AI code review.",
                 ).to_dict()
 
             # Get git status
@@ -55,25 +56,32 @@ class ReviewCommand(BaseCommand):
                 agent.start_new_session("Code Review")
 
             except Exception as e:
-                return CommandResult(False, f"Failed to initialize AI agent: {str(e)}").to_dict()
+                return CommandResult(
+                    False, f"Failed to initialize AI agent: {str(e)}"
+                ).to_dict()
 
             # Load AI prompts from files
             system_prompt = load_prompt("review_system")
-            user_message = format_prompt("review_user",
-                                       git_status=git_status,
-                                       changes_diff=changes_diff,
-                                       recent_commits=recent_commits)
+            user_message = format_prompt(
+                "review_user",
+                git_status=git_status,
+                changes_diff=changes_diff,
+                recent_commits=recent_commits,
+            )
 
             # Send to AI
             try:
                 ai_response = await agent.send_system_message(
                     system_prompt=system_prompt,
                     user_message=user_message,
-                    save_to_db=True
+                    save_to_db=True,
                 )
 
                 if not ai_response["success"]:
-                    return CommandResult(False, f"AI code review failed: {ai_response.get('error', 'Unknown error')}").to_dict()
+                    return CommandResult(
+                        False,
+                        f"AI code review failed: {ai_response.get('error', 'Unknown error')}",
+                    ).to_dict()
 
             except Exception as e:
                 return CommandResult(False, f"AI service error: {str(e)}").to_dict()
@@ -89,13 +97,16 @@ class ReviewCommand(BaseCommand):
                 "git_status": git_status,
                 "prompt": "review_save_confirm",
                 "ai_model": ai_response.get("model", "Unknown"),
-                "session_id": ai_response.get("session_id", "Unknown")
+                "session_id": ai_response.get("session_id", "Unknown"),
             }
 
         except Exception as e:
             import traceback
+
             error_detail = traceback.format_exc()
-            return CommandResult(False, f"Review command failed: {str(e)}\n\nDetails: {error_detail}").to_dict()
+            return CommandResult(
+                False, f"Review command failed: {str(e)}\n\nDetails: {error_detail}"
+            ).to_dict()
 
     def get_help(self) -> str:
         return f"""

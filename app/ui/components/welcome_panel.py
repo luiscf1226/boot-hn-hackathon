@@ -18,8 +18,10 @@ class WelcomePanel:
         welcome_text.append("Boot-hn", style="bold cyan")
         welcome_text.append("\nThe CLI Agent Buddy", style="dim")
 
-        return Static(Panel(
-            welcome_text,
-            title="[bold green]AI Coding Agent[/bold green]",
-            border_style="green"
-        ))
+        return Static(
+            Panel(
+                welcome_text,
+                title="[bold green]AI Coding Agent[/bold green]",
+                border_style="green",
+            )
+        )

@@ -24,7 +24,7 @@ class CommandsPanel:
             ("/explain", "Explain code from files or paste"),
             ("/commit", "AI-generated git commit messages"),
             ("/clean", "Database maintenance (clean/stats/vacuum)"),
-            ("/clear", "Clear terminal output")
+            ("/clear", "Clear terminal output"),
         ]
 
         for command, description in commands:
@@ -32,8 +32,10 @@ class CommandsPanel:
             commands_text.append(command, style="bold cyan")
             commands_text.append(f" - {description}\n", style="white")
 
-        return Static(Panel(
-            commands_text,
-            title="[bold blue]Commands[/bold blue]",
-            border_style="blue"
-        ))
+        return Static(
+            Panel(
+                commands_text,
+                title="[bold blue]Commands[/bold blue]",
+                border_style="blue",
+            )
+        )

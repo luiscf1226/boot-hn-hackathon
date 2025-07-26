@@ -26,7 +26,9 @@ class Settings(BaseSettings):
     # Security settings
     secret_key: str = Field(default="your-secret-key-change-this", env="SECRET_KEY")
     algorithm: str = Field(default="HS256", env="ALGORITHM")
-    access_token_expire_minutes: int = Field(default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES")
+    access_token_expire_minutes: int = Field(
+        default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES"
+    )
 
     class Config:
         env_file = ".env"
@@ -41,13 +43,17 @@ def get_settings() -> Settings:
 # For backwards compatibility - but use get_settings() instead
 _settings_instance = None
 
+
 def _get_settings_cached():
     global _settings_instance
     if _settings_instance is None:
         _settings_instance = Settings()
     return _settings_instance
 
+
 # Alias for backwards compatibility
-settings = type('SettingsProxy', (), {
-    '__getattr__': lambda self, name: getattr(_get_settings_cached(), name)
-})()
+settings = type(
+    "SettingsProxy",
+    (),
+    {"__getattr__": lambda self, name: getattr(_get_settings_cached(), name)},
+)()

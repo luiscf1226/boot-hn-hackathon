@@ -14,7 +14,7 @@ from app.functions.git_operations import (
     get_staged_files,
     get_staged_diff,
     execute_git_commit,
-    get_recent_commits
+    get_recent_commits,
 )
 
 
@@ -49,8 +49,9 @@ class CommitCommand(BaseCommand):
             # Check if user has API key configured
             user = User.get_or_create_default_user(self.db)
             if not user.gemini_api_key:
-                return CommandResult(False,
-                    "❌ No API key found. Please run /setup first to configure your Gemini API key for AI commit message generation."
+                return CommandResult(
+                    False,
+                    "❌ No API key found. Please run /setup first to configure your Gemini API key for AI commit message generation.",
                 ).to_dict()
 
             # Get staged diff for AI analysis
@@ -67,25 +68,32 @@ class CommitCommand(BaseCommand):
                 agent.start_new_session("Git Commit Message Generation")
 
             except Exception as e:
-                return CommandResult(False, f"Failed to initialize AI agent: {str(e)}").to_dict()
+                return CommandResult(
+                    False, f"Failed to initialize AI agent: {str(e)}"
+                ).to_dict()
 
             # Load AI prompts from files
             system_prompt = load_prompt("commit_system")
-            user_message = format_prompt("commit_user", 
-                                       staged_files=staged_files,
-                                       staged_diff=staged_diff,
-                                       recent_commits=recent_commits)
+            user_message = format_prompt(
+                "commit_user",
+                staged_files=staged_files,
+                staged_diff=staged_diff,
+                recent_commits=recent_commits,
+            )
 
             # Send to AI
             try:
                 ai_response = await agent.send_system_message(
                     system_prompt=system_prompt,
                     user_message=user_message,
-                    save_to_db=True
+                    save_to_db=True,
                 )
 
                 if not ai_response["success"]:
-                    return CommandResult(False, f"AI commit message generation failed: {ai_response.get('error', 'Unknown error')}").to_dict()
+                    return CommandResult(
+                        False,
+                        f"AI commit message generation failed: {ai_response.get('error', 'Unknown error')}",
+                    ).to_dict()
 
             except Exception as e:
                 return CommandResult(False, f"AI service error: {str(e)}").to_dict()
@@ -107,13 +115,16 @@ class CommitCommand(BaseCommand):
                 "staged_files": staged_files,
                 "prompt": "commit_confirm",
                 "ai_model": ai_response.get("model", "Unknown"),
-                "session_id": ai_response.get("session_id", "Unknown")
+                "session_id": ai_response.get("session_id", "Unknown"),
             }
 
         except Exception as e:
             import traceback
+
             error_detail = traceback.format_exc()
-            return CommandResult(False, f"Commit command failed: {str(e)}\n\nDetails: {error_detail}").to_dict()
+            return CommandResult(
+                False, f"Commit command failed: {str(e)}\n\nDetails: {error_detail}"
+            ).to_dict()
 
     def get_help(self) -> str:
         return f"""

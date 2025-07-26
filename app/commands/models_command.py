@@ -22,9 +22,10 @@ class ModelsCommand(BaseCommand):
             # Get API key from settings
             api_key = settings.gemini_api_key
             if not api_key or api_key == "your_gemini_api_key_here":
-                return CommandResult(False,
-                    "Please set GEMINI_API_KEY in your .env file\n" +
-                    "Get one from: https://makersuite.google.com/app/apikey"
+                return CommandResult(
+                    False,
+                    "Please set GEMINI_API_KEY in your .env file\n"
+                    + "Get one from: https://makersuite.google.com/app/apikey",
                 ).to_dict()
 
             # Get or create user
@@ -36,12 +37,16 @@ class ModelsCommand(BaseCommand):
 
             if not new_model:
                 # Just show current model and available options
-                current_model = user.selected_model if user.selected_model else "gemini-2.0-flash-exp"
+                current_model = (
+                    user.selected_model
+                    if user.selected_model
+                    else "gemini-2.0-flash-exp"
+                )
                 return {
                     "prompt": "model",
                     "message": f"Current model: {current_model}\n\nAvailable models:",
                     "available_models": available_models,
-                    "current_model": current_model
+                    "current_model": current_model,
                 }
 
             # Validate new model
@@ -50,15 +55,18 @@ class ModelsCommand(BaseCommand):
                     "prompt": "model",
                     "message": f"Model '{new_model}' is not valid. Choose from the list:",
                     "available_models": available_models,
-                    "current_model": user.selected_model if user.selected_model else "gemini-2.0-flash-exp"
+                    "current_model": user.selected_model
+                    if user.selected_model
+                    else "gemini-2.0-flash-exp",
                 }
 
             # Update the model
             success = user.update_configuration(self.db, api_key, new_model)
             if success:
-                return CommandResult(True,
+                return CommandResult(
+                    True,
                     f"Model changed to: {new_model}",
-                    {"model": new_model, "previous_model": user.selected_model}
+                    {"model": new_model, "previous_model": user.selected_model},
                 ).to_dict()
             else:
                 return CommandResult(False, "Failed to update model").to_dict()

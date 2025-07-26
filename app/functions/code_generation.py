@@ -38,11 +38,14 @@ def resolve_project_path(input_path: str, project_root: str = None) -> Path:
             # Apply same logic to project_root
             if root_path_obj.is_absolute():
                 # Check if it's a real absolute system path
-                if len(root_path_obj.parts) > 2 and (root_path_obj.exists() or str(root_path_obj).startswith(('/', 'C:', 'D:'))):
+                if len(root_path_obj.parts) > 2 and (
+                    root_path_obj.exists()
+                    or str(root_path_obj).startswith(("/", "C:", "D:"))
+                ):
                     base_path = root_path_obj.resolve()
                 else:
                     # Treat as relative to current directory (remove leading slash)
-                    relative_part = str(root_path_obj).lstrip('/')
+                    relative_part = str(root_path_obj).lstrip("/")
                     base_path = (Path.cwd() / relative_part).resolve()
             else:
                 # Regular relative path
@@ -61,20 +64,27 @@ def resolve_project_path(input_path: str, project_root: str = None) -> Path:
     # Check if it's a real absolute system path (has multiple parts and exists or looks like system path)
     if path_obj.is_absolute():
         # If it starts with system root and has multiple parts, treat as absolute
-        if len(path_obj.parts) > 2 and (path_obj.exists() or str(path_obj).startswith(('/', 'C:', 'D:'))):
+        if len(path_obj.parts) > 2 and (
+            path_obj.exists() or str(path_obj).startswith(("/", "C:", "D:"))
+        ):
             return path_obj.resolve()
         else:
             # Treat as relative to project root (remove leading slash)
-            relative_part = str(path_obj).lstrip('/')
+            relative_part = str(path_obj).lstrip("/")
             return (base_path / relative_part).resolve()
     else:
         # Regular relative path
         return (base_path / input_path).resolve()
 
 
-def generate_python_class(class_name: str, file_path: str, project_root: str = None,
-                         methods: List[str] = None, parent_class: str = None,
-                         docstring: str = None) -> str:
+def generate_python_class(
+    class_name: str,
+    file_path: str,
+    project_root: str = None,
+    methods: List[str] = None,
+    parent_class: str = None,
+    docstring: str = None,
+) -> str:
     """
     Generate a Python class template and save to file.
 
@@ -99,8 +109,8 @@ def generate_python_class(class_name: str, file_path: str, project_root: str = N
         code = f'"""\n{class_name} module.\n"""\n\n'
 
         # Add imports if needed
-        if parent_class and '.' in parent_class:
-            module, cls = parent_class.rsplit('.', 1)
+        if parent_class and "." in parent_class:
+            module, cls = parent_class.rsplit(".", 1)
             code += f"from {module} import {cls}\n\n"
             parent_class = cls
 
@@ -133,7 +143,7 @@ def generate_python_class(class_name: str, file_path: str, project_root: str = N
             code += "        pass\n"
 
         # Write to file
-        with open(full_path, 'w', encoding='utf-8') as f:
+        with open(full_path, "w", encoding="utf-8") as f:
             f.write(code)
 
         # Show relative path for cleaner output
@@ -153,9 +163,15 @@ def generate_python_class(class_name: str, file_path: str, project_root: str = N
         return f"❌ Error generating Python class: {str(e)}"
 
 
-def generate_python_function(function_name: str, file_path: str, project_root: str = None,
-                           parameters: List[str] = None, return_type: str = None,
-                           docstring: str = None, async_func: bool = False) -> str:
+def generate_python_function(
+    function_name: str,
+    file_path: str,
+    project_root: str = None,
+    parameters: List[str] = None,
+    return_type: str = None,
+    docstring: str = None,
+    async_func: bool = False,
+) -> str:
     """
     Generate a Python function template and save to file.
 
@@ -180,7 +196,7 @@ def generate_python_function(function_name: str, file_path: str, project_root: s
         # Check if file exists and read current content
         existing_content = ""
         if full_path.exists():
-            with open(full_path, 'r', encoding='utf-8') as f:
+            with open(full_path, "r", encoding="utf-8") as f:
                 existing_content = f.read()
 
         # Generate function code
@@ -205,7 +221,7 @@ def generate_python_function(function_name: str, file_path: str, project_root: s
             final_content = f'"""\n{file_path.stem} module.\n"""\n\n' + code
 
         # Write to file
-        with open(full_path, 'w', encoding='utf-8') as f:
+        with open(full_path, "w", encoding="utf-8") as f:
             f.write(final_content)
 
         # Show relative path for cleaner output
@@ -226,9 +242,13 @@ def generate_python_function(function_name: str, file_path: str, project_root: s
         return f"❌ Error generating Python function: {str(e)}"
 
 
-def generate_project_structure(project_name: str, project_root: str = None,
-                             project_type: str = "python", include_tests: bool = True,
-                             include_docs: bool = True) -> str:
+def generate_project_structure(
+    project_name: str,
+    project_root: str = None,
+    project_type: str = "python",
+    include_tests: bool = True,
+    include_docs: bool = True,
+) -> str:
     """
     Generate a complete project structure with common files and directories.
 
@@ -258,7 +278,7 @@ def generate_project_structure(project_name: str, project_root: str = None,
                 "tests" if include_tests else None,
                 "docs" if include_docs else None,
                 "scripts",
-                "data"
+                "data",
             ]
 
             for dir_name in filter(None, dirs):
@@ -296,7 +316,7 @@ if __name__ == "__main__":
 
             # Create setup.py
             setup_file = project_path / "setup.py"
-            setup_content = f'''from setuptools import setup, find_packages
+            setup_content = f"""from setuptools import setup, find_packages
 
 setup(
     name="{project_name}",
@@ -313,20 +333,24 @@ setup(
         ],
     }},
 )
-'''
+"""
             setup_file.write_text(setup_content)
             created_files.append(str(setup_file.relative_to(base_path)))
 
         elif project_type.lower() in ["javascript", "js", "node"]:
             # JavaScript/Node.js project structure
-            dirs = ["src", "tests" if include_tests else None, "docs" if include_docs else None]
+            dirs = [
+                "src",
+                "tests" if include_tests else None,
+                "docs" if include_docs else None,
+            ]
 
             for dir_name in filter(None, dirs):
                 (project_path / dir_name).mkdir(exist_ok=True)
 
             # Create package.json
             package_file = project_path / "package.json"
-            package_content = f'''{{
+            package_content = f"""{{
   "name": "{project_name}",
   "version": "1.0.0",
   "description": "",
@@ -339,25 +363,25 @@ setup(
   "author": "",
   "license": "ISC"
 }}
-'''
+"""
             package_file.write_text(package_content)
             created_files.append(str(package_file.relative_to(base_path)))
 
             # Create main file
             main_file = project_path / "src" / "index.js"
-            main_content = f'''/**
+            main_content = f"""/**
  * Main module for {project_name}
  */
 
 console.log('Hello from {project_name}!');
-'''
+"""
             main_file.write_text(main_content)
             created_files.append(str(main_file.relative_to(base_path)))
 
         # Create common files
         # README.md
         readme_file = project_path / "README.md"
-        readme_content = f'''# {project_name}
+        readme_content = f"""# {project_name}
 
 ## Description
 
@@ -378,14 +402,14 @@ A new {project_type} project.
 ## License
 
 MIT License
-'''
+"""
         readme_file.write_text(readme_content)
         created_files.append(str(readme_file.relative_to(base_path)))
 
         # .gitignore
         gitignore_file = project_path / ".gitignore"
         if project_type.lower() == "python":
-            gitignore_content = '''# Python
+            gitignore_content = """# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -421,9 +445,9 @@ ENV/
 # OS
 .DS_Store
 Thumbs.db
-'''
+"""
         else:
-            gitignore_content = '''# Dependencies
+            gitignore_content = """# Dependencies
 node_modules/
 npm-debug.log*
 yarn-debug.log*
@@ -447,7 +471,7 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
-'''
+"""
         gitignore_file.write_text(gitignore_content)
         created_files.append(str(gitignore_file.relative_to(base_path)))
 
@@ -463,8 +487,12 @@ Thumbs.db
         return f"❌ Error generating project structure: {str(e)}"
 
 
-def generate_test_file(source_file: str, test_file: str = None, project_root: str = None,
-                      test_framework: str = "unittest") -> str:
+def generate_test_file(
+    source_file: str,
+    test_file: str = None,
+    project_root: str = None,
+    test_framework: str = "unittest",
+) -> str:
     """
     Generate a test file template for a source file.
 
@@ -499,14 +527,18 @@ def generate_test_file(source_file: str, test_file: str = None, project_root: st
 
         # Generate test code based on framework
         if test_framework.lower() == "unittest":
-            test_code = generate_unittest_template(source_path, functions, classes, project_root)
+            test_code = generate_unittest_template(
+                source_path, functions, classes, project_root
+            )
         elif test_framework.lower() == "pytest":
-            test_code = generate_pytest_template(source_path, functions, classes, project_root)
+            test_code = generate_pytest_template(
+                source_path, functions, classes, project_root
+            )
         else:
             return f"❌ Unsupported test framework: {test_framework}"
 
         # Write test file
-        with open(test_path, 'w', encoding='utf-8') as f:
+        with open(test_path, "w", encoding="utf-8") as f:
             f.write(test_code)
 
         # Show relative paths for cleaner output
@@ -533,8 +565,12 @@ def generate_test_file(source_file: str, test_file: str = None, project_root: st
         return f"❌ Error generating test file: {str(e)}"
 
 
-def generate_documentation(file_path: str, doc_file: str = None, project_root: str = None,
-                          doc_format: str = "markdown") -> str:
+def generate_documentation(
+    file_path: str,
+    doc_file: str = None,
+    project_root: str = None,
+    doc_format: str = "markdown",
+) -> str:
     """
     Generate documentation for a source file.
 
@@ -577,7 +613,7 @@ def generate_documentation(file_path: str, doc_file: str = None, project_root: s
             return f"❌ Unsupported documentation format: {doc_format}"
 
         # Write documentation file
-        with open(doc_path, 'w', encoding='utf-8') as f:
+        with open(doc_path, "w", encoding="utf-8") as f:
             f.write(doc_content)
 
         # Show relative paths for cleaner output
@@ -606,13 +642,14 @@ def extract_testable_items(file_path: Path) -> tuple[List[str], List[str]]:
 
     try:
         import ast
-        with open(file_path, 'r', encoding='utf-8') as f:
+
+        with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         tree = ast.parse(content)
 
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef) and not node.name.startswith('_'):
+            if isinstance(node, ast.FunctionDef) and not node.name.startswith("_"):
                 functions.append(node.name)
             elif isinstance(node, ast.ClassDef):
                 classes.append(node.name)
@@ -623,7 +660,12 @@ def extract_testable_items(file_path: Path) -> tuple[List[str], List[str]]:
     return functions, classes
 
 
-def generate_unittest_template(source_path: Path, functions: List[str], classes: List[str], project_root: str = None) -> str:
+def generate_unittest_template(
+    source_path: Path,
+    functions: List[str],
+    classes: List[str],
+    project_root: str = None,
+) -> str:
     """Generate unittest template."""
     module_name = source_path.stem
 
@@ -632,7 +674,7 @@ def generate_unittest_template(source_path: Path, functions: List[str], classes:
         base_path = Path(project_root).resolve()
         try:
             rel_path = source_path.relative_to(base_path)
-            import_path = '.'.join(rel_path.with_suffix('').parts)
+            import_path = ".".join(rel_path.with_suffix("").parts)
         except ValueError:
             import_path = module_name
     else:
@@ -680,16 +722,21 @@ from {import_path} import {', '.join(functions + classes) if functions + classes
 
 '''
 
-    code += '''
+    code += """
 
 if __name__ == '__main__':
     unittest.main()
-'''
+"""
 
     return code
 
 
-def generate_pytest_template(source_path: Path, functions: List[str], classes: List[str], project_root: str = None) -> str:
+def generate_pytest_template(
+    source_path: Path,
+    functions: List[str],
+    classes: List[str],
+    project_root: str = None,
+) -> str:
     """Generate pytest template."""
     module_name = source_path.stem
 
@@ -698,7 +745,7 @@ def generate_pytest_template(source_path: Path, functions: List[str], classes: L
         base_path = Path(project_root).resolve()
         try:
             rel_path = source_path.relative_to(base_path)
-            import_path = '.'.join(rel_path.with_suffix('').parts)
+            import_path = ".".join(rel_path.with_suffix("").parts)
         except ValueError:
             import_path = module_name
     else:
@@ -751,11 +798,13 @@ def {class_name.lower()}_instance():
     return code
 
 
-def generate_markdown_docs(source_path: Path, functions: List[str], classes: List[str]) -> str:
+def generate_markdown_docs(
+    source_path: Path, functions: List[str], classes: List[str]
+) -> str:
     """Generate Markdown documentation."""
     module_name = source_path.stem
 
-    doc = f'''# {module_name}
+    doc = f"""# {module_name}
 
 ## Overview
 
@@ -763,10 +812,10 @@ Documentation for the `{module_name}` module.
 
 ## Classes
 
-'''
+"""
 
     for class_name in classes:
-        doc += f'''### {class_name}
+        doc += f"""### {class_name}
 
 TODO: Add description for {class_name}
 
@@ -775,14 +824,14 @@ TODO: Add description for {class_name}
 - `__init__()`: Constructor
 - TODO: Add other methods
 
-'''
+"""
 
     if functions:
-        doc += '''## Functions
+        doc += """## Functions
 
-'''
+"""
         for func_name in functions:
-            doc += f'''### {func_name}()
+            doc += f"""### {func_name}()
 
 TODO: Add description for {func_name}
 
@@ -792,25 +841,27 @@ TODO: Add description for {func_name}
 **Returns:**
 - TODO: Add return description
 
-'''
+"""
 
-    doc += f'''## Usage
+    doc += f"""## Usage
 
 ```python
 import {module_name}
 
 # TODO: Add usage examples
 ```
-'''
+"""
 
     return doc
 
 
-def generate_rst_docs(source_path: Path, functions: List[str], classes: List[str]) -> str:
+def generate_rst_docs(
+    source_path: Path, functions: List[str], classes: List[str]
+) -> str:
     """Generate reStructuredText documentation."""
     module_name = source_path.stem
 
-    doc = f'''{module_name}
+    doc = f"""{module_name}
 {'=' * len(module_name)}
 
 Overview
@@ -821,10 +872,10 @@ Documentation for the ``{module_name}`` module.
 Classes
 -------
 
-'''
+"""
 
     for class_name in classes:
-        doc += f'''{class_name}
+        doc += f"""{class_name}
 {'^' * len(class_name)}
 
 TODO: Add description for {class_name}
@@ -835,15 +886,15 @@ Methods
 - ``__init__()``: Constructor
 - TODO: Add other methods
 
-'''
+"""
 
     if functions:
-        doc += '''Functions
+        doc += """Functions
 ---------
 
-'''
+"""
         for func_name in functions:
-            doc += f'''{func_name}()
+            doc += f"""{func_name}()
 {'^' * (len(func_name) + 2)}
 
 TODO: Add description for {func_name}
@@ -856,9 +907,9 @@ TODO: Add description for {func_name}
 
 - TODO: Add return description
 
-'''
+"""
 
-    doc += f'''Usage
+    doc += f"""Usage
 -----
 
 .. code-block:: python
@@ -866,6 +917,6 @@ TODO: Add description for {func_name}
    import {module_name}
 
    # TODO: Add usage examples
-'''
+"""
 
     return doc

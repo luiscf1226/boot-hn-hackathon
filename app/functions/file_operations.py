@@ -38,11 +38,14 @@ def resolve_project_path(input_path: str, project_root: str = None) -> Path:
             # Apply same logic to project_root
             if root_path_obj.is_absolute():
                 # Check if it's a real absolute system path
-                if len(root_path_obj.parts) > 2 and (root_path_obj.exists() or str(root_path_obj).startswith(('/', 'C:', 'D:'))):
+                if len(root_path_obj.parts) > 2 and (
+                    root_path_obj.exists()
+                    or str(root_path_obj).startswith(("/", "C:", "D:"))
+                ):
                     base_path = root_path_obj.resolve()
                 else:
                     # Treat as relative to current directory (remove leading slash)
-                    relative_part = str(root_path_obj).lstrip('/')
+                    relative_part = str(root_path_obj).lstrip("/")
                     base_path = (Path.cwd() / relative_part).resolve()
             else:
                 # Regular relative path
@@ -61,11 +64,13 @@ def resolve_project_path(input_path: str, project_root: str = None) -> Path:
     # Check if it's a real absolute system path (has multiple parts and exists or looks like system path)
     if path_obj.is_absolute():
         # If it starts with system root and has multiple parts, treat as absolute
-        if len(path_obj.parts) > 2 and (path_obj.exists() or str(path_obj).startswith(('/', 'C:', 'D:'))):
+        if len(path_obj.parts) > 2 and (
+            path_obj.exists() or str(path_obj).startswith(("/", "C:", "D:"))
+        ):
             return path_obj.resolve()
         else:
             # Treat as relative to project root (remove leading slash)
-            relative_part = str(path_obj).lstrip('/')
+            relative_part = str(path_obj).lstrip("/")
             return (base_path / relative_part).resolve()
     else:
         # Regular relative path
@@ -97,7 +102,7 @@ def read_file(file_path: str, project_root: str = None) -> str:
         if file_size > 10 * 1024 * 1024:  # 10MB limit
             return f"Error: File '{full_path}' is too large ({file_size} bytes). Maximum size is 10MB."
 
-        with open(full_path, 'r', encoding='utf-8', errors='ignore') as f:
+        with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
             content = f.read()
 
         # Show relative path for cleaner output
@@ -119,7 +124,9 @@ def read_file(file_path: str, project_root: str = None) -> str:
         return f"Error reading file '{file_path}': {str(e)}"
 
 
-def search_in_file(file_path: str, pattern: str, project_root: str = None, case_sensitive: bool = False) -> str:
+def search_in_file(
+    file_path: str, pattern: str, project_root: str = None, case_sensitive: bool = False
+) -> str:
     """
     Search for a pattern in a file (like grep).
 
@@ -145,7 +152,7 @@ def search_in_file(file_path: str, pattern: str, project_root: str = None, case_
         regex = re.compile(pattern, flags)
 
         matches = []
-        with open(full_path, 'r', encoding='utf-8', errors='ignore') as f:
+        with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
             for line_num, line in enumerate(f, 1):
                 if regex.search(line):
                     matches.append(f"{line_num}: {line.rstrip()}")
@@ -174,7 +181,14 @@ def search_in_file(file_path: str, pattern: str, project_root: str = None, case_
         return f"Error searching in file '{file_path}': {str(e)}"
 
 
-def search_in_directory(directory: str, pattern: str, file_extensions: List[str] = None, project_root: str = None, case_sensitive: bool = False, max_files: int = 100) -> str:
+def search_in_directory(
+    directory: str,
+    pattern: str,
+    file_extensions: List[str] = None,
+    project_root: str = None,
+    case_sensitive: bool = False,
+    max_files: int = 100,
+) -> str:
     """
     Search for a pattern in multiple files in a directory (like grep -r).
 
@@ -210,7 +224,7 @@ def search_in_directory(directory: str, pattern: str, file_extensions: List[str]
         else:
             base_path = Path.cwd().resolve()
 
-        for file_path in search_path.rglob('*'):
+        for file_path in search_path.rglob("*"):
             if files_searched >= max_files:
                 results.append(f"\n--- Stopped after searching {max_files} files ---")
                 break
@@ -219,7 +233,9 @@ def search_in_directory(directory: str, pattern: str, file_extensions: List[str]
                 continue
 
             # Filter by extensions if provided
-            if file_extensions and file_path.suffix.lower() not in [ext.lower() for ext in file_extensions]:
+            if file_extensions and file_path.suffix.lower() not in [
+                ext.lower() for ext in file_extensions
+            ]:
                 continue
 
             # Skip binary files and large files
@@ -227,14 +243,16 @@ def search_in_directory(directory: str, pattern: str, file_extensions: List[str]
                 if file_path.stat().st_size > 1024 * 1024:  # 1MB limit for search
                     continue
 
-                with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
                     for line_num, line in enumerate(f, 1):
                         if regex.search(line):
                             try:
                                 relative_path = file_path.relative_to(base_path)
                             except ValueError:
                                 relative_path = file_path
-                            results.append(f"{relative_path}:{line_num}: {line.rstrip()}")
+                            results.append(
+                                f"{relative_path}:{line_num}: {line.rstrip()}"
+                            )
 
                 files_searched += 1
 
@@ -242,7 +260,9 @@ def search_in_directory(directory: str, pattern: str, file_extensions: List[str]
                 continue
 
         if not results:
-            return f"No matches found for pattern '{pattern}' in directory '{search_path}'"
+            return (
+                f"No matches found for pattern '{pattern}' in directory '{search_path}'"
+            )
 
         try:
             display_path = search_path.relative_to(base_path)
@@ -259,7 +279,9 @@ def search_in_directory(directory: str, pattern: str, file_extensions: List[str]
         return f"Error searching in directory '{directory}': {str(e)}"
 
 
-def create_file(file_path: str, content: str, project_root: str = None, overwrite: bool = False) -> str:
+def create_file(
+    file_path: str, content: str, project_root: str = None, overwrite: bool = False
+) -> str:
     """
     Create a file with given content.
 
@@ -282,7 +304,7 @@ def create_file(file_path: str, content: str, project_root: str = None, overwrit
         # Create parent directories if they don't exist
         full_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(full_path, 'w', encoding='utf-8') as f:
+        with open(full_path, "w", encoding="utf-8") as f:
             f.write(content)
 
         return f"Successfully created file: {full_path}"
@@ -293,7 +315,13 @@ def create_file(file_path: str, content: str, project_root: str = None, overwrit
         return f"Error creating file '{file_path}': {str(e)}"
 
 
-def list_files(directory: str = ".", file_extensions: List[str] = None, project_root: str = None, recursive: bool = True, max_files: int = 500) -> str:
+def list_files(
+    directory: str = ".",
+    file_extensions: List[str] = None,
+    project_root: str = None,
+    recursive: bool = True,
+    max_files: int = 500,
+) -> str:
     """
     List files in a directory with optional filtering.
 
@@ -326,9 +354,9 @@ def list_files(directory: str = ".", file_extensions: List[str] = None, project_
             base_path = Path.cwd().resolve()
 
         if recursive:
-            pattern = '**/*'
+            pattern = "**/*"
         else:
-            pattern = '*'
+            pattern = "*"
 
         for file_path in search_path.glob(pattern):
             if files_count >= max_files:
@@ -337,7 +365,9 @@ def list_files(directory: str = ".", file_extensions: List[str] = None, project_
 
             if file_path.is_file():
                 # Filter by extensions if provided
-                if file_extensions and file_path.suffix.lower() not in [ext.lower() for ext in file_extensions]:
+                if file_extensions and file_path.suffix.lower() not in [
+                    ext.lower() for ext in file_extensions
+                ]:
                     continue
 
                 try:

@@ -8,7 +8,11 @@ from sqlalchemy.orm import Session
 from app.commands.base import BaseCommand, CommandResult
 from app.models.user import User, UserSettings
 from app.core.config import settings
-from app.utils.helpers import save_env_variable, validate_gemini_api_key, get_env_variable
+from app.utils.helpers import (
+    save_env_variable,
+    validate_gemini_api_key,
+    get_env_variable,
+)
 
 
 class SetupCommand(BaseCommand):
@@ -27,16 +31,20 @@ class SetupCommand(BaseCommand):
 
             # Get API key from environment/settings
             api_key = get_env_variable("GEMINI_API_KEY")
-            if not api_key or api_key == "your_gemini_api_key_here" or len(api_key.strip()) < 20:
+            if (
+                not api_key
+                or api_key == "your_gemini_api_key_here"
+                or len(api_key.strip()) < 20
+            ):
                 return {
                     "prompt": "api_key",
                     "message": "Gemini API Key Required",
                     "instructions": [
                         "Get your free API key from: https://makersuite.google.com/app/apikey",
                         "Copy the API key and paste it below",
-                        "Your key will be saved securely to your .env file"
+                        "Your key will be saved securely to your .env file",
                     ],
-                    "placeholder": "Paste your Gemini API key here..."
+                    "placeholder": "Paste your Gemini API key here...",
                 }
 
             # Get or create user
@@ -51,7 +59,9 @@ class SetupCommand(BaseCommand):
                     "prompt": "model",
                     "message": "Select a Gemini model:",
                     "available_models": available_models,
-                    "current_model": user.selected_model if user.selected_model else "gemini-2.0-flash-exp"
+                    "current_model": user.selected_model
+                    if user.selected_model
+                    else "gemini-2.0-flash-exp",
                 }
 
             # Validate model
@@ -60,15 +70,18 @@ class SetupCommand(BaseCommand):
                     "prompt": "model",
                     "message": f"Model '{model}' is not valid. Choose from the list:",
                     "available_models": available_models,
-                    "current_model": user.selected_model if user.selected_model else "gemini-2.0-flash-exp"
+                    "current_model": user.selected_model
+                    if user.selected_model
+                    else "gemini-2.0-flash-exp",
                 }
 
             # Save configuration
             success = user.update_configuration(self.db, api_key, model)
             if success:
-                return CommandResult(True,
+                return CommandResult(
+                    True,
                     f"Setup completed! Using model: {model}",
-                    {"model": model, "api_key_set": True}
+                    {"model": model, "api_key_set": True},
                 ).to_dict()
             else:
                 return CommandResult(False, "Failed to save configuration").to_dict()
@@ -90,25 +103,28 @@ class SetupCommand(BaseCommand):
                     "instructions": [
                         "Gemini API keys should start with 'AIza' and be around 39 characters long",
                         "Please check your key and try again",
-                        "Get your key from: https://makersuite.google.com/app/apikey"
+                        "Get your key from: https://makersuite.google.com/app/apikey",
                     ],
                     "placeholder": "Paste your Gemini API key here...",
-                    "error": "Invalid API key format"
+                    "error": "Invalid API key format",
                 }
 
             # Save to .env file
             if save_env_variable("GEMINI_API_KEY", api_key):
                 # Reload settings to pick up new API key
                 from app.core.config import get_settings
+
                 new_settings = get_settings()
 
-                return CommandResult(True,
+                return CommandResult(
+                    True,
                     "API key saved successfully! Now let's select your model...",
-                    {"api_key_saved": True, "proceed_to_model": True}
+                    {"api_key_saved": True, "proceed_to_model": True},
                 ).to_dict()
             else:
-                return CommandResult(False,
-                    "Failed to save API key to .env file. Please check file permissions."
+                return CommandResult(
+                    False,
+                    "Failed to save API key to .env file. Please check file permissions.",
                 ).to_dict()
 
         except Exception as e:

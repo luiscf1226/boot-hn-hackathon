@@ -37,11 +37,14 @@ def resolve_project_path(input_path: str, project_root: str = None) -> Path:
             # Apply same logic to project_root
             if root_path_obj.is_absolute():
                 # Check if it's a real absolute system path
-                if len(root_path_obj.parts) > 2 and (root_path_obj.exists() or str(root_path_obj).startswith(('/', 'C:', 'D:'))):
+                if len(root_path_obj.parts) > 2 and (
+                    root_path_obj.exists()
+                    or str(root_path_obj).startswith(("/", "C:", "D:"))
+                ):
                     base_path = root_path_obj.resolve()
                 else:
                     # Treat as relative to current directory (remove leading slash)
-                    relative_part = str(root_path_obj).lstrip('/')
+                    relative_part = str(root_path_obj).lstrip("/")
                     base_path = (Path.cwd() / relative_part).resolve()
             else:
                 # Regular relative path
@@ -60,18 +63,22 @@ def resolve_project_path(input_path: str, project_root: str = None) -> Path:
     # Check if it's a real absolute system path (has multiple parts and exists or looks like system path)
     if path_obj.is_absolute():
         # If it starts with system root and has multiple parts, treat as absolute
-        if len(path_obj.parts) > 2 and (path_obj.exists() or str(path_obj).startswith(('/', 'C:', 'D:'))):
+        if len(path_obj.parts) > 2 and (
+            path_obj.exists() or str(path_obj).startswith(("/", "C:", "D:"))
+        ):
             return path_obj.resolve()
         else:
             # Treat as relative to project root (remove leading slash)
-            relative_part = str(path_obj).lstrip('/')
+            relative_part = str(path_obj).lstrip("/")
             return (base_path / relative_part).resolve()
     else:
         # Regular relative path
         return (base_path / input_path).resolve()
 
 
-def get_project_structure(project_root: str = None, max_depth: int = 5, ignore_patterns: List[str] = None) -> str:
+def get_project_structure(
+    project_root: str = None, max_depth: int = 5, ignore_patterns: List[str] = None
+) -> str:
     """
     Get recursive project structure as a tree string.
 
@@ -95,9 +102,19 @@ def get_project_structure(project_root: str = None, max_depth: int = 5, ignore_p
         # Default ignore patterns
         if ignore_patterns is None:
             ignore_patterns = [
-                '.git', '.gitignore', '__pycache__', '.pyc',
-                'node_modules', '.DS_Store', '.vscode', '.idea',
-                'venv', 'env', '.env', 'dist', 'build'
+                ".git",
+                ".gitignore",
+                "__pycache__",
+                ".pyc",
+                "node_modules",
+                ".DS_Store",
+                ".vscode",
+                ".idea",
+                "venv",
+                "env",
+                ".env",
+                "dist",
+                "build",
             ]
 
         def should_ignore(path: Path) -> bool:
@@ -120,7 +137,9 @@ def get_project_structure(project_root: str = None, max_depth: int = 5, ignore_p
                 lines.append(f"{path.name}/")
 
             try:
-                items = sorted(path.iterdir(), key=lambda x: (x.is_file(), x.name.lower()))
+                items = sorted(
+                    path.iterdir(), key=lambda x: (x.is_file(), x.name.lower())
+                )
 
                 for i, item in enumerate(items):
                     if should_ignore(item):
@@ -137,7 +156,9 @@ def get_project_structure(project_root: str = None, max_depth: int = 5, ignore_p
                         # Show file with size
                         size = item.stat().st_size
                         size_str = format_file_size(size)
-                        lines.append(f"{prefix}{current_prefix}{item.name} ({size_str})")
+                        lines.append(
+                            f"{prefix}{current_prefix}{item.name} ({size_str})"
+                        )
 
             except PermissionError:
                 lines.append(f"{prefix}└── [Permission Denied]")
@@ -154,7 +175,9 @@ def get_project_structure(project_root: str = None, max_depth: int = 5, ignore_p
         return f"Error analyzing project structure: {str(e)}"
 
 
-def analyze_project_languages(project_root: str = None, ignore_patterns: List[str] = None) -> str:
+def analyze_project_languages(
+    project_root: str = None, ignore_patterns: List[str] = None
+) -> str:
     """
     Analyze programming languages and file types in the project.
 
@@ -174,8 +197,14 @@ def analyze_project_languages(project_root: str = None, ignore_patterns: List[st
         # Default ignore patterns
         if ignore_patterns is None:
             ignore_patterns = [
-                '.git', '__pycache__', 'node_modules', '.DS_Store',
-                'venv', 'env', 'dist', 'build'
+                ".git",
+                "__pycache__",
+                "node_modules",
+                ".DS_Store",
+                "venv",
+                "env",
+                "dist",
+                "build",
             ]
 
         def should_ignore(path: Path) -> bool:
@@ -187,47 +216,47 @@ def analyze_project_languages(project_root: str = None, ignore_patterns: List[st
 
         # Language mapping
         language_map = {
-            '.py': 'Python',
-            '.js': 'JavaScript',
-            '.ts': 'TypeScript',
-            '.jsx': 'React JSX',
-            '.tsx': 'React TSX',
-            '.html': 'HTML',
-            '.css': 'CSS',
-            '.scss': 'SCSS',
-            '.sass': 'Sass',
-            '.json': 'JSON',
-            '.yml': 'YAML',
-            '.yaml': 'YAML',
-            '.md': 'Markdown',
-            '.txt': 'Text',
-            '.sh': 'Shell Script',
-            '.sql': 'SQL',
-            '.java': 'Java',
-            '.cpp': 'C++',
-            '.c': 'C',
-            '.go': 'Go',
-            '.rs': 'Rust',
-            '.php': 'PHP',
-            '.rb': 'Ruby',
-            '.swift': 'Swift',
-            '.kt': 'Kotlin',
-            '.dart': 'Dart',
-            '.r': 'R',
-            '.scala': 'Scala',
-            '.clj': 'Clojure',
-            '.dockerfile': 'Dockerfile',
-            '.env': 'Environment',
-            '.toml': 'TOML',
-            '.xml': 'XML',
-            '.vue': 'Vue.js'
+            ".py": "Python",
+            ".js": "JavaScript",
+            ".ts": "TypeScript",
+            ".jsx": "React JSX",
+            ".tsx": "React TSX",
+            ".html": "HTML",
+            ".css": "CSS",
+            ".scss": "SCSS",
+            ".sass": "Sass",
+            ".json": "JSON",
+            ".yml": "YAML",
+            ".yaml": "YAML",
+            ".md": "Markdown",
+            ".txt": "Text",
+            ".sh": "Shell Script",
+            ".sql": "SQL",
+            ".java": "Java",
+            ".cpp": "C++",
+            ".c": "C",
+            ".go": "Go",
+            ".rs": "Rust",
+            ".php": "PHP",
+            ".rb": "Ruby",
+            ".swift": "Swift",
+            ".kt": "Kotlin",
+            ".dart": "Dart",
+            ".r": "R",
+            ".scala": "Scala",
+            ".clj": "Clojure",
+            ".dockerfile": "Dockerfile",
+            ".env": "Environment",
+            ".toml": "TOML",
+            ".xml": "XML",
+            ".vue": "Vue.js",
         }
 
-        file_stats = defaultdict(lambda: {'count': 0, 'size': 0, 'files': []})
+        file_stats = defaultdict(lambda: {"count": 0, "size": 0, "files": []})
         total_files = 0
         total_size = 0
 
-        for file_path in base_path.rglob('*'):
+        for file_path in base_path.rglob("*"):
             if not file_path.is_file() or should_ignore(file_path):
                 continue
 
@@ -235,14 +264,20 @@ def analyze_project_languages(project_root: str = None, ignore_patterns: List[st
             file_size = file_path.stat().st_size
 
             # Special case for files without extension
-            if not extension and file_path.name.lower() in ['dockerfile', 'makefile', 'readme']:
-                extension = f'.{file_path.name.lower()}'
+            if not extension and file_path.name.lower() in [
+                "dockerfile",
+                "makefile",
+                "readme",
+            ]:
+                extension = f".{file_path.name.lower()}"
 
-            language = language_map.get(extension, f'Other ({extension})' if extension else 'No Extension')
+            language = language_map.get(
+                extension, f"Other ({extension})" if extension else "No Extension"
+            )
 
-            file_stats[language]['count'] += 1
-            file_stats[language]['size'] += file_size
-            file_stats[language]['files'].append(str(file_path.relative_to(base_path)))
+            file_stats[language]["count"] += 1
+            file_stats[language]["size"] += file_size
+            file_stats[language]["files"].append(str(file_path.relative_to(base_path)))
 
             total_files += 1
             total_size += file_size
@@ -251,23 +286,27 @@ def analyze_project_languages(project_root: str = None, ignore_patterns: List[st
             return f"No files found in project '{base_path}'"
 
         # Sort by file count
-        sorted_languages = sorted(file_stats.items(), key=lambda x: x[1]['count'], reverse=True)
+        sorted_languages = sorted(
+            file_stats.items(), key=lambda x: x[1]["count"], reverse=True
+        )
 
         result = f"Project language analysis for: {base_path}\n"
-        result += f"Total files: {total_files}, Total size: {format_file_size(total_size)}\n"
-        result += "="*50 + "\n\n"
+        result += (
+            f"Total files: {total_files}, Total size: {format_file_size(total_size)}\n"
+        )
+        result += "=" * 50 + "\n\n"
 
         for language, stats in sorted_languages:
-            percentage = (stats['count'] / total_files) * 100
-            size_str = format_file_size(stats['size'])
+            percentage = (stats["count"] / total_files) * 100
+            size_str = format_file_size(stats["size"])
             result += f"{language}:\n"
             result += f"  Files: {stats['count']} ({percentage:.1f}%)\n"
             result += f"  Size: {size_str}\n"
 
             # Show some example files (up to 5)
-            example_files = stats['files'][:5]
+            example_files = stats["files"][:5]
             result += f"  Examples: {', '.join(example_files)}"
-            if len(stats['files']) > 5:
+            if len(stats["files"]) > 5:
                 result += f" (and {len(stats['files']) - 5} more)"
             result += "\n\n"
 
@@ -294,11 +333,33 @@ def get_important_files(project_root: str = None) -> str:
             return f"Error: Directory '{base_path}' does not exist"
 
         important_patterns = {
-            'Documentation': ['readme*', 'changelog*', 'license*', 'authors*', 'contributors*'],
-            'Configuration': ['*.json', '*.yml', '*.yaml', '*.toml', '*.ini', '*.cfg', '.env*'],
-            'Build/Deploy': ['makefile', 'dockerfile*', '*.sh', 'requirements.txt', 'package.json', 'setup.py', 'pyproject.toml'],
-            'Version Control': ['.gitignore', '.gitattributes'],
-            'CI/CD': ['.github/**/*', '.gitlab-ci.yml', 'jenkinsfile*', '*.yml']
+            "Documentation": [
+                "readme*",
+                "changelog*",
+                "license*",
+                "authors*",
+                "contributors*",
+            ],
+            "Configuration": [
+                "*.json",
+                "*.yml",
+                "*.yaml",
+                "*.toml",
+                "*.ini",
+                "*.cfg",
+                ".env*",
+            ],
+            "Build/Deploy": [
+                "makefile",
+                "dockerfile*",
+                "*.sh",
+                "requirements.txt",
+                "package.json",
+                "setup.py",
+                "pyproject.toml",
+            ],
+            "Version Control": [".gitignore", ".gitattributes"],
+            "CI/CD": [".github/**/*", ".gitlab-ci.yml", "jenkinsfile*", "*.yml"],
         }
 
         found_files = defaultdict(list)
@@ -309,11 +370,13 @@ def get_important_files(project_root: str = None) -> str:
                     if file_path.is_file():
                         relative_path = file_path.relative_to(base_path)
                         file_size = file_path.stat().st_size
-                        found_files[category].append({
-                            'path': str(relative_path),
-                            'size': file_size,
-                            'full_path': file_path
-                        })
+                        found_files[category].append(
+                            {
+                                "path": str(relative_path),
+                                "size": file_size,
+                                "full_path": file_path,
+                            }
+                        )
 
         if not found_files:
             return f"No important files found in project '{base_path}'"
@@ -323,8 +386,8 @@ def get_important_files(project_root: str = None) -> str:
         for category, files in found_files.items():
             if files:
                 result += f"{category}:\n"
-                for file_info in sorted(files, key=lambda x: x['path']):
-                    size_str = format_file_size(file_info['size'])
+                for file_info in sorted(files, key=lambda x: x["path"]):
+                    size_str = format_file_size(file_info["size"])
                     result += f"  - {file_info['path']} ({size_str})\n"
                 result += "\n"
 
@@ -365,7 +428,7 @@ def get_project_summary(project_root: str = None) -> str:
 
         result = f"COMPREHENSIVE PROJECT SUMMARY\n"
         result += f"Project: {base_path}\n"
-        result += "="*60 + "\n\n"
+        result += "=" * 60 + "\n\n"
 
         # 1. Language Analysis
         result += "1. LANGUAGE ANALYSIS:\n"
@@ -373,12 +436,12 @@ def get_project_summary(project_root: str = None) -> str:
         lang_analysis = analyze_project_languages(str(base_path))
         if not lang_analysis.startswith("Error"):
             # Extract just the stats part
-            lines = lang_analysis.split('\n')
+            lines = lang_analysis.split("\n")
             stats_start = False
             for line in lines:
-                if '=' in line and stats_start:
+                if "=" in line and stats_start:
                     break
-                if '=' in line:
+                if "=" in line:
                     stats_start = True
                     continue
                 if stats_start and line.strip():
@@ -393,10 +456,10 @@ def get_project_summary(project_root: str = None) -> str:
         important_files = get_important_files(str(base_path))
         if not important_files.startswith("Error"):
             # Extract just the files part
-            lines = important_files.split('\n')
+            lines = important_files.split("\n")
             files_start = False
             for line in lines:
-                if '=' in line:
+                if "=" in line:
                     files_start = True
                     continue
                 if files_start and line.strip():
@@ -408,13 +471,15 @@ def get_project_summary(project_root: str = None) -> str:
         # 3. Directory Structure (simplified)
         result += "3. PROJECT STRUCTURE:\n"
         result += "-" * 30 + "\n"
-        structure = get_project_structure(str(base_path), max_depth=3)  # Limit depth for summary
+        structure = get_project_structure(
+            str(base_path), max_depth=3
+        )  # Limit depth for summary
         if not structure.startswith("Error"):
             # Extract just the tree part
-            lines = structure.split('\n')
+            lines = structure.split("\n")
             tree_start = False
             for line in lines:
-                if '=' in line:
+                if "=" in line:
                     tree_start = True
                     continue
                 if tree_start:

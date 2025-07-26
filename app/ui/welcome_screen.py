@@ -48,7 +48,7 @@ class WelcomeApp(App):
                     max_lines=100,
                     highlight=True,
                     markup=True,
-                    wrap=True
+                    wrap=True,
                 )
 
                 # Progress bar (initially hidden)
@@ -67,8 +67,12 @@ class WelcomeApp(App):
         self.command_handlers = CommandHandlers(self.progress_manager)
 
         output = self.query_one("#output")
-        output.write("Ready! Available commands: [bold]/setup[/bold], [bold]/models[/bold], [bold]/init[/bold], [bold]/clean[/bold], [bold]/commit[/bold], [bold]/explain[/bold], [bold]/clear[/bold]")
-        output.write("[dim]Tip: Use Ctrl+L to clear terminal, Ctrl+C to clean database and quit[/dim]")
+        output.write(
+            "Ready! Available commands: [bold]/setup[/bold], [bold]/models[/bold], [bold]/init[/bold], [bold]/clean[/bold], [bold]/commit[/bold], [bold]/explain[/bold], [bold]/clear[/bold]"
+        )
+        output.write(
+            "[dim]Tip: Use Ctrl+L to clear terminal, Ctrl+C to clean database and quit[/dim]"
+        )
         output.write("[dim]You can select and copy text with your mouse![/dim]")
         self.query_one("#input").focus()
 
@@ -82,6 +86,7 @@ class WelcomeApp(App):
 
         try:
             from app.functions.database_operations import clean_database
+
             result = clean_database()
             output.write(f"[green]{result}[/green]")
             await asyncio.sleep(1)  # Brief pause to show message
@@ -95,7 +100,9 @@ class WelcomeApp(App):
         """Clear the terminal output."""
         output = self.query_one("#output")
         output.clear()
-        output.write("Terminal cleared! Type [bold]/setup[/bold], [bold]/models[/bold], [bold]/init[/bold], [bold]/clean[/bold], [bold]/commit[/bold], [bold]/review-changes[/bold], [bold]/explain[/bold], or [bold]/clear[/bold].")
+        output.write(
+            "Terminal cleared! Type [bold]/setup[/bold], [bold]/models[/bold], [bold]/init[/bold], [bold]/clean[/bold], [bold]/commit[/bold], [bold]/review-changes[/bold], [bold]/explain[/bold], or [bold]/clear[/bold]."
+        )
 
     async def on_input_submitted(self, event: Input.Submitted) -> None:
         """Handle input submission."""
@@ -168,7 +175,10 @@ class WelcomeApp(App):
         elif text:
             result = await self.command_handlers.handle_unknown_command(output, text)
             await self._process_unknown_command_result(result, input_widget)
-    async def _process_unknown_command_result(self, result: dict, input_widget: Input) -> None:
+
+    async def _process_unknown_command_result(
+        self, result: dict, input_widget: Input
+    ) -> None:
         """Process unknown command result."""
         # Unknown command doesn't require special state management
         # The AI response is already handled in the command handler
@@ -178,7 +188,9 @@ class WelcomeApp(App):
         """Process setup command result and update state."""
         if result.get("prompt") == "api_key":
             self.state.setup_waiting_for_api_key = True
-            input_widget.placeholder = result.get("placeholder", "Paste your Gemini API key here...")
+            input_widget.placeholder = result.get(
+                "placeholder", "Paste your Gemini API key here..."
+            )
         elif result.get("prompt") == "model":
             self.state.models = result.get("available_models", [])
             self.state.setup_step = "model_selection"
@@ -263,7 +275,9 @@ class WelcomeApp(App):
                 for instruction in instructions:
                     output.write(f"[dim]• {instruction}[/dim]")
                 output.write("\n[yellow]Please enter a valid Gemini API key:[/yellow]")
-                input_widget.placeholder = result.get("placeholder", "Paste your Gemini API key here...")
+                input_widget.placeholder = result.get(
+                    "placeholder", "Paste your Gemini API key here..."
+                )
 
             elif result.get("success") and result.get("api_key_saved"):
                 output.write(f"[green]{result['message']}[/green]")
@@ -282,7 +296,9 @@ class WelcomeApp(App):
                     self.state.current_command = "setup"
                     input_widget.placeholder = "Enter number (1-4)"
                 else:
-                    output.write(f"[green]API key saved! Run /setup again to select model.[/green]")
+                    output.write(
+                        f"[green]API key saved! Run /setup again to select model.[/green]"
+                    )
                     self.state.reset()
                     self._update_default_placeholder(input_widget)
 
@@ -312,7 +328,9 @@ class WelcomeApp(App):
                 selected = self.state.models[num - 1]
 
                 command = self.state.current_command or "setup"
-                final_result = await command_manager.execute_command(command, model=selected)
+                final_result = await command_manager.execute_command(
+                    command, model=selected
+                )
 
                 if final_result.get("success"):
                     output.write(f"[green]{final_result['message']}[/green]")
@@ -324,14 +342,18 @@ class WelcomeApp(App):
             else:
                 output.write("[red]Invalid number. Please enter 1-4[/red]")
         except ValueError:
-            output.write("[red]Please enter a number (1-4) or press Enter to cancel[/red]")
+            output.write(
+                "[red]Please enter a number (1-4) or press Enter to cancel[/red]"
+            )
 
     async def _handle_init_path(self, output: RichLog, path: str) -> None:
         """Handle project path input for init command."""
         input_widget = self.query_one("#input")
 
         try:
-            result = await self.command_handlers.execute_init_with_progress(output, path)
+            result = await self.command_handlers.execute_init_with_progress(
+                output, path
+            )
             self.state.init_waiting_for_path = False
             self._update_default_placeholder(input_widget)
         except Exception as e:
@@ -354,10 +376,15 @@ class WelcomeApp(App):
             action_map = {"1": "clean", "2": "stats", "3": "vacuum"}
             action = action_map.get(choice, choice.lower())
 
-            if hasattr(self.state, 'pending_clean_action') and self.state.pending_clean_action:
+            if (
+                hasattr(self.state, "pending_clean_action")
+                and self.state.pending_clean_action
+            ):
                 if choice.lower() == "yes":
                     output.write("[blue]Cleaning database...[/blue]")
-                    result = await command_manager.execute_command("clean", action=self.state.pending_clean_action)
+                    result = await command_manager.execute_command(
+                        "clean", action=self.state.pending_clean_action
+                    )
                     if result.get("success"):
                         output.write(f"[green]{result['message']}[/green]")
                     else:
@@ -371,9 +398,15 @@ class WelcomeApp(App):
                 return
 
             if action == "clean":
-                output.write("[red]WARNING: This will permanently delete ALL data![/red]")
-                output.write("[dim]Including: user settings, API keys, conversation history[/dim]")
-                output.write("[yellow]Type 'yes' to confirm or anything else to cancel:[/yellow]")
+                output.write(
+                    "[red]WARNING: This will permanently delete ALL data![/red]"
+                )
+                output.write(
+                    "[dim]Including: user settings, API keys, conversation history[/dim]"
+                )
+                output.write(
+                    "[yellow]Type 'yes' to confirm or anything else to cancel:[/yellow]"
+                )
 
                 self.state.pending_clean_action = action
                 input_widget.placeholder = "Type 'yes' to confirm deletion"
@@ -410,7 +443,11 @@ class WelcomeApp(App):
 
             if choice == "yes":
                 output.write("[blue]Executing commit...[/blue]")
-                result = await command_manager.execute_command("commit", action="execute", commit_message=self.state.pending_commit_message)
+                result = await command_manager.execute_command(
+                    "commit",
+                    action="execute",
+                    commit_message=self.state.pending_commit_message,
+                )
 
                 if result.get("success"):
                     output.write(f"[green]{result['message']}[/green]")
@@ -422,11 +459,15 @@ class WelcomeApp(App):
                 self._update_default_placeholder(input_widget)
 
             elif choice == "edit":
-                output.write(f"[yellow]Current message: \"{self.state.pending_commit_message}\"[/yellow]")
+                output.write(
+                    f'[yellow]Current message: "{self.state.pending_commit_message}"[/yellow]'
+                )
                 output.write("[yellow]Enter your modified commit message:[/yellow]")
                 input_widget.placeholder = "Enter your commit message"
 
-            elif choice.startswith("edit ") or (choice != "yes" and choice != "no" and self.state.pending_commit_message):
+            elif choice.startswith("edit ") or (
+                choice != "yes" and choice != "no" and self.state.pending_commit_message
+            ):
                 if choice.startswith("edit "):
                     new_message = choice[5:].strip()
                 else:
@@ -434,7 +475,9 @@ class WelcomeApp(App):
 
                 if new_message:
                     self.state.pending_commit_message = new_message
-                    output.write(f"[green]Updated commit message: \"{new_message}\"[/green]")
+                    output.write(
+                        f'[green]Updated commit message: "{new_message}"[/green]'
+                    )
                     output.write("[yellow]Execute this commit? (yes/no/edit):[/yellow]")
                     input_widget.placeholder = "yes/no/edit"
                 else:
@@ -464,7 +507,9 @@ class WelcomeApp(App):
                 return
 
             if choice == "yes":
-                output.write("[green]Code review saved to database successfully![/green]")
+                output.write(
+                    "[green]Code review saved to database successfully![/green]"
+                )
                 session_id = self.state.pending_review_data.get("session_id", "Unknown")
                 output.write(f"[dim]Session ID: {session_id}[/dim]")
 
@@ -498,40 +543,54 @@ class WelcomeApp(App):
             if self.state.explain_input_type == "option":
                 if text in ["1", "paste"]:
                     output.write("[blue]Paste your code below and press Enter:[/blue]")
-                    output.write("[dim]Tip: You can paste multi-line code. Press Enter when done.[/dim]")
+                    output.write(
+                        "[dim]Tip: You can paste multi-line code. Press Enter when done.[/dim]"
+                    )
                     self.state.explain_input_type = "code_paste"
                     input_widget.placeholder = "Paste your code here..."
 
                 elif text in ["2", "file"] or text.startswith("file "):
                     if text.startswith("file "):
                         file_path = text[5:].strip()
-                        await self.command_handlers.execute_explain_with_progress(output, "analyze_file", file_path=file_path)
+                        await self.command_handlers.execute_explain_with_progress(
+                            output, "analyze_file", file_path=file_path
+                        )
                         self.state.explain_waiting_for_input = False
                         self.state.explain_input_type = None
                         self._update_default_placeholder(input_widget)
                     else:
                         output.write("[blue]Enter the file path to analyze:[/blue]")
-                        output.write("[dim]Example: ./main.py or /path/to/file.py[/dim]")
+                        output.write(
+                            "[dim]Example: ./main.py or /path/to/file.py[/dim]"
+                        )
                         self.state.explain_input_type = "file_path"
                         input_widget.placeholder = "Enter file path..."
 
                 elif text in ["3", "current"]:
-                    await self.command_handlers.execute_explain_with_progress(output, "analyze_current_dir")
+                    await self.command_handlers.execute_explain_with_progress(
+                        output, "analyze_current_dir"
+                    )
                     self.state.explain_waiting_for_input = False
                     self.state.explain_input_type = None
                     self._update_default_placeholder(input_widget)
 
                 else:
-                    output.write("[red]Invalid option. Please enter 1-3, paste, file, or current[/red]")
+                    output.write(
+                        "[red]Invalid option. Please enter 1-3, paste, file, or current[/red]"
+                    )
 
             elif self.state.explain_input_type == "code_paste":
-                await self.command_handlers.execute_explain_with_progress(output, "analyze_code", code=text)
+                await self.command_handlers.execute_explain_with_progress(
+                    output, "analyze_code", code=text
+                )
                 self.state.explain_waiting_for_input = False
                 self.state.explain_input_type = None
                 self._update_default_placeholder(input_widget)
 
             elif self.state.explain_input_type == "file_path":
-                await self.command_handlers.execute_explain_with_progress(output, "analyze_file", file_path=text)
+                await self.command_handlers.execute_explain_with_progress(
+                    output, "analyze_file", file_path=text
+                )
                 self.state.explain_waiting_for_input = False
                 self.state.explain_input_type = None
                 self._update_default_placeholder(input_widget)

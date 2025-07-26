@@ -27,15 +27,13 @@ class BaseCommand(ABC):
 class CommandResult:
     """Standard result format for commands."""
 
-    def __init__(self, success: bool, message: str, data: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self, success: bool, message: str, data: Optional[Dict[str, Any]] = None
+    ):
         self.success = success
         self.message = message
         self.data = data or {}
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert result to dictionary."""
-        return {
-            "success": self.success,
-            "message": self.message,
-            "data": self.data
-        }
+        return {"success": self.success, "message": self.message, "data": self.data}
