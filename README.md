@@ -12,6 +12,30 @@ I learned a lot recently on how to use classes and use patterns like builder and
 
 I'm not sure if I'm gonna win but I'm just happy to represent Honduras and hope at least you found it interesting! 🇭🇳
 
+## Demo
+
+### Overview Video
+Watch this quick demo to see the AI Coding Agent in action:
+
+https://github.com/user-attachments/assets/video.mov
+
+### Step-by-Step Usage
+
+#### 1. Initial Application Launch
+![Initial State](assets/initial.jpeg)
+
+#### 2. Setup Command (/setup)
+Configure your AI model and API key:
+![Setup Command](assets/setup.jpeg)
+
+#### 3. Init Command (/init)
+Initialize your project workspace:
+![Init Command](assets/init.jpeg)
+
+#### 4. Explain Command (/explain)
+Get AI-powered code explanations:
+![Explain Command](assets/explain.jpeg)
+
 ## Get Your Free API Key
 
 Before using this app, you'll need a **free** Google Gemini API key:
@@ -107,7 +131,7 @@ To add a new command:
    ```python
    # app/commands/my_command.py
    from app.commands.base import BaseCommand
-   
+
    class MyCommand(BaseCommand):
        async def execute(self, *args, **kwargs):
            return {"success": True, "message": "Command executed!"}
