@@ -15,6 +15,11 @@ I'm not sure if I'm gonna win but I'm just happy to represent Honduras and hope 
 
 ### Step-by-Step Usage
 
+### Overview Video
+Watch this quick demo to see the AI Coding Agent in action:
+
+https://github.com/user-attachments/assets/video.mov
+
 #### 1. Initial Application Launch
 ![Initial State](assets/initial.jpeg)
 
