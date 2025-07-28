@@ -3,6 +3,7 @@ Application configuration management.
 """
 
 import os
+from pathlib import Path
 from typing import Optional
 from pydantic_settings import BaseSettings
 from pydantic import Field
@@ -17,8 +18,17 @@ class Settings(BaseSettings):
     debug: bool = Field(default=True, env="DEBUG")
 
     # Database settings
-    database_url: str = Field(default="sqlite:///./app.db", env="DATABASE_URL")
+    database_url: str = Field(default=None, env="DATABASE_URL")
     database_echo: bool = Field(default=False, env="DATABASE_ECHO")
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if self.database_url is None:
+            # Create boot-hn/temp/db directory in user's home
+            home_dir = Path.home()
+            db_dir = home_dir / "boot-hn" / "temp" / "db"
+            db_dir.mkdir(parents=True, exist_ok=True)
+            self.database_url = f"sqlite:///{db_dir}/app.db"
 
     # AI settings
     gemini_api_key: str = Field(default="", env="GEMINI_API_KEY")
