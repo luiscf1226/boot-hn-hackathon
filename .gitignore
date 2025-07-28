@@ -172,10 +172,6 @@ database.db
 logs/
 *.log
 
-# AI Model files (if any local models)
-models/
-*.bin
-*.safetensors
 
 # Temporary files
 tmp/
